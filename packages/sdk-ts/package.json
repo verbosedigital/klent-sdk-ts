@@ -1,0 +1,80 @@
+{
+  "name": "@velor/sdk",
+  "version": "0.0.1",
+  "license": "UNLICENSED",
+  "description": "Velor TypeScript SDK — control layer for AI agents",
+  "keywords": [
+    "ai",
+    "agents",
+    "observability",
+    "guardrails",
+    "llm",
+    "policy",
+    "velor"
+  ],
+  "homepage": "https://velor.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/velor/velor.git",
+    "directory": "packages/sdk-ts"
+  },
+  "bugs": {
+    "url": "https://github.com/velor/velor/issues"
+  },
+  "author": "Velor",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./anthropic": {
+      "types": "./dist/anthropic.d.ts",
+      "default": "./dist/anthropic.js"
+    },
+    "./openai": {
+      "types": "./dist/openai.d.ts",
+      "default": "./dist/openai.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist .turbo *.tsbuildinfo",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "@velor/schema": "workspace:*"
+  },
+  "peerDependencies": {
+    "@anthropic-ai/sdk": ">=0.40.0",
+    "openai": ">=4.60.0"
+  },
+  "peerDependenciesMeta": {
+    "@anthropic-ai/sdk": {
+      "optional": true
+    },
+    "openai": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.90.0",
+    "@velor/tsconfig": "workspace:*",
+    "openai": "^4.77.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}

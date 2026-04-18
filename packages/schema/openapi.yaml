@@ -1,0 +1,449 @@
+openapi: 3.1.0
+info:
+  title: Velor API
+  version: 0.1.0
+  description: |
+    Velor is the control, observability, and evaluation layer for AI agents.
+    This spec covers the stable `/v1` surface consumed by the official SDKs and
+    any custom integration.
+  contact:
+    name: Velor
+    url: https://velor.dev
+  license:
+    name: Proprietary
+servers:
+  - url: https://api.velor.dev/v1
+    description: Hosted production
+  - url: http://localhost:3001/v1
+    description: Local (docker-compose + `pnpm --filter @velor/api dev`)
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Executions
+    description: Agent sessions — the parent of every event.
+  - name: Events
+    description: Append-only timeline of agent activity.
+  - name: Actions
+    description: Policy-evaluated tool calls.
+  - name: Policies
+    description: Rules evaluated against actions.
+  - name: Alerts
+    description: Webhook and email rules triggered by event types.
+
+paths:
+  /executions:
+    post:
+      tags: [Executions]
+      summary: Start an execution
+      description: Create an execution session. Returns the ID you pass through your agent code.
+      operationId: createExecution
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExecutionRequest'
+      responses:
+        '201':
+          description: Execution created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Execution'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /executions/{execution_id}/events:
+    get:
+      tags: [Executions, Events]
+      summary: List events for an execution
+      description: Returns events in chronological order, up to 500 per call.
+      operationId: listExecutionEvents
+      parameters:
+        - in: path
+          name: execution_id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Events.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Event' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /events:
+    post:
+      tags: [Events]
+      summary: Log an event
+      description: |
+        Append an event to an execution. Returns `202 Accepted` — events are
+        processed asynchronously and will appear on the timeline within
+        milliseconds.
+      operationId: logEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogEventRequest'
+      responses:
+        '202':
+          description: Event queued.
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /actions/evaluate:
+    post:
+      tags: [Actions]
+      summary: Evaluate an action against policies
+      description: |
+        Synchronous. Returns `allow`, `deny`, or `modify`. Automatically records
+        a `decision` (for allow/modify) or `action_blocked` (for deny) event on
+        the execution timeline — you do not need to log it yourself.
+      operationId: evaluateAction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluateActionRequest'
+      responses:
+        '200':
+          description: Decision.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluateActionResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /policies:
+    post:
+      tags: [Policies]
+      summary: Create a policy
+      operationId: createPolicy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePolicyRequest'
+      responses:
+        '201':
+          description: Policy created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    get:
+      tags: [Policies]
+      summary: List policies
+      operationId: listPolicies
+      responses:
+        '200':
+          description: Policies.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Policy' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /alerts:
+    post:
+      tags: [Alerts]
+      summary: Create an alert rule
+      operationId: createAlertRule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAlertRuleRequest'
+      responses:
+        '201':
+          description: Alert rule created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertRule'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    get:
+      tags: [Alerts]
+      summary: List alert rules
+      operationId: listAlertRules
+      responses:
+        '200':
+          description: Alert rules.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AlertRule' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: vk_live_…
+      description: |
+        API key minted in the dashboard at `/api-keys` or via `pnpm --filter @velor/api seed`.
+        Include as `Authorization: Bearer <key>`.
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid API key.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    NotFound:
+      description: Resource not found or not accessible.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    ValidationError:
+      description: Request body failed schema validation.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+
+  schemas:
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string, example: VALIDATION_ERROR }
+            message: { type: string }
+            issues:
+              type: array
+              description: Present for VALIDATION_ERROR. Each entry is a Zod issue.
+              items: { type: object, additionalProperties: true }
+
+    Metadata:
+      type: object
+      additionalProperties: true
+      description: Free-form JSON metadata attached to the resource.
+
+    EventType:
+      type: string
+      enum: [decision, action_requested, action_executed, action_blocked, error]
+
+    ExecutionStatus:
+      type: string
+      enum: [running, completed, failed, cancelled]
+
+    CreateExecutionRequest:
+      type: object
+      required: [agent_id]
+      properties:
+        agent_id: { type: string, example: billing-agent }
+        metadata: { $ref: '#/components/schemas/Metadata' }
+
+    Execution:
+      type: object
+      required: [id, project_id, agent_id, status, started_at, ended_at, metadata]
+      properties:
+        id: { type: string, example: exec_3hzrwhhwkr9wtz7nxoinddi3 }
+        project_id: { type: string, example: proj_oepn852xaoymt9nu0kr3uog8 }
+        agent_id: { type: string }
+        status: { $ref: '#/components/schemas/ExecutionStatus' }
+        started_at: { type: string, format: date-time }
+        ended_at:
+          oneOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+        metadata: { $ref: '#/components/schemas/Metadata' }
+
+    LogEventRequest:
+      type: object
+      required: [execution_id, type, payload]
+      properties:
+        execution_id: { type: string, example: exec_… }
+        type: { $ref: '#/components/schemas/EventType' }
+        payload:
+          type: object
+          additionalProperties: true
+        metadata: { $ref: '#/components/schemas/Metadata' }
+        occurred_at:
+          type: string
+          format: date-time
+          description: Defaults to server time. Use when back-filling from logs.
+
+    Event:
+      type: object
+      required: [id, project_id, execution_id, type, payload, metadata, occurred_at, received_at]
+      properties:
+        id: { type: string, example: evt_… }
+        project_id: { type: string }
+        execution_id: { type: string }
+        type: { $ref: '#/components/schemas/EventType' }
+        payload:
+          type: object
+          additionalProperties: true
+        metadata: { $ref: '#/components/schemas/Metadata' }
+        occurred_at: { type: string, format: date-time }
+        received_at: { type: string, format: date-time }
+
+    EvaluateActionRequest:
+      type: object
+      required: [execution_id, tool, input]
+      properties:
+        execution_id: { type: string, example: exec_… }
+        tool: { type: string, example: transfer_funds }
+        input:
+          type: object
+          additionalProperties: true
+        metadata: { $ref: '#/components/schemas/Metadata' }
+
+    PolicyEffect:
+      type: string
+      enum: [allow, deny, modify]
+
+    PolicyOperator:
+      type: string
+      enum: [equals, not_equals, greater_than, less_than, contains, ends_with]
+
+    PolicyCondition:
+      type: object
+      required: [field, operator, value]
+      properties:
+        field: { type: string, example: input.amount }
+        operator: { $ref: '#/components/schemas/PolicyOperator' }
+        value:
+          oneOf:
+            - { type: string }
+            - { type: number }
+            - { type: boolean }
+
+    PolicyModification:
+      type: object
+      required: [field, value]
+      properties:
+        field: { type: string }
+        value: {}
+
+    EvaluateActionResponse:
+      type: object
+      required: [decision, matched_policy_id, modifications, reason]
+      properties:
+        decision: { $ref: '#/components/schemas/PolicyEffect' }
+        matched_policy_id:
+          oneOf:
+            - { type: string, example: pol_… }
+            - { type: 'null' }
+        modifications:
+          oneOf:
+            - { type: array, items: { $ref: '#/components/schemas/PolicyModification' } }
+            - { type: 'null' }
+        reason:
+          oneOf:
+            - { type: string }
+            - { type: 'null' }
+
+    CreatePolicyRequest:
+      type: object
+      required: [name, effect, conditions]
+      properties:
+        name: { type: string, maxLength: 200 }
+        description: { type: string }
+        enabled: { type: boolean, default: true }
+        conditions:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/PolicyCondition' }
+        effect: { $ref: '#/components/schemas/PolicyEffect' }
+        modifications:
+          type: array
+          items: { $ref: '#/components/schemas/PolicyModification' }
+
+    Policy:
+      allOf:
+        - $ref: '#/components/schemas/CreatePolicyRequest'
+        - type: object
+          required: [id, project_id, created_at, updated_at]
+          properties:
+            id: { type: string, example: pol_… }
+            project_id: { type: string }
+            created_at: { type: string, format: date-time }
+            updated_at: { type: string, format: date-time }
+
+    AlertChannel:
+      oneOf:
+        - type: object
+          required: [type, target]
+          properties:
+            type: { type: string, enum: [email] }
+            target: { type: string, format: email }
+        - type: object
+          required: [type, target]
+          properties:
+            type: { type: string, enum: [webhook] }
+            target: { type: string, format: uri }
+            secret:
+              type: string
+              minLength: 16
+              description: Optional HMAC SHA256 secret used to sign webhook payloads.
+
+    CreateAlertRuleRequest:
+      type: object
+      required: [name, event_types, channel]
+      properties:
+        name: { type: string, maxLength: 200 }
+        enabled: { type: boolean, default: true }
+        event_types:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/EventType' }
+        channel: { $ref: '#/components/schemas/AlertChannel' }
+
+    AlertRule:
+      allOf:
+        - $ref: '#/components/schemas/CreateAlertRuleRequest'
+        - type: object
+          required: [id, project_id, created_at]
+          properties:
+            id: { type: string, example: alert_… }
+            project_id: { type: string }
+            created_at: { type: string, format: date-time }

@@ -1,0 +1,44 @@
+{
+  "name": "@velor/schema",
+  "version": "0.0.1",
+  "license": "UNLICENSED",
+  "description": "Zod schemas and TypeScript types for the Velor API — shared between the SDK and server.",
+  "keywords": ["velor", "zod", "schema", "types"],
+  "homepage": "https://velor.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/velor/velor.git",
+    "directory": "packages/schema"
+  },
+  "author": "Velor",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist .turbo *.tsbuildinfo",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@velor/tsconfig": "workspace:*",
+    "typescript": "^5.6.3"
+  }
+}

@@ -1,0 +1,42 @@
+name: Publish TypeScript SDK
+
+on:
+  push:
+    tags:
+      - 'sdk-ts-v*'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build @velor/schema + @velor/sdk
+        run: pnpm turbo run build --filter=@velor/schema --filter=@velor/sdk
+
+      - name: Publish @velor/schema
+        run: pnpm --filter @velor/schema publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @velor/sdk
+        run: pnpm --filter @velor/sdk publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
