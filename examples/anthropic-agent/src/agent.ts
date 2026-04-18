@@ -9,7 +9,7 @@ const USER_QUERY =
 const tools: VelorTool[] = [
   {
     name: 'get_weather',
-    description: "Get the current weather for a city. Safe, idempotent.",
+    description: 'Get the current weather for a city. Safe, idempotent.',
     input_schema: {
       type: 'object',
       properties: { city: { type: 'string' } },
@@ -33,8 +33,7 @@ const tools: VelorTool[] = [
   },
   {
     name: 'transfer_funds',
-    description:
-      'Transfer money from the user account. Dangerous. High amounts should be blocked.',
+    description: 'Transfer money from the user account. Dangerous. High amounts should be blocked.',
     input_schema: {
       type: 'object',
       properties: {
@@ -76,9 +75,7 @@ async function main() {
   console.log(`\n▸ Execution: ${result.executionId}`);
   console.log(`▸ Turns: ${result.turns}, stop_reason: ${result.stopReason}`);
   console.log(`▸ Assistant: ${result.finalText}`);
-  console.log(
-    `\n▸ See timeline at http://localhost:3000/executions/${result.executionId}\n`,
-  );
+  console.log(`\n▸ See timeline at http://localhost:3000/executions/${result.executionId}\n`);
 }
 
 function requireEnv(name: string): string {

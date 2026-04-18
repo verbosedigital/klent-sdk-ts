@@ -39,9 +39,7 @@ export interface RunOpenAIAgentResult {
  *     the policy reason so the model can adjust its plan.
  *  3. Stops when the model returns without tool calls.
  */
-export async function runOpenAIAgent(
-  opts: RunOpenAIAgentOptions,
-): Promise<RunOpenAIAgentResult> {
+export async function runOpenAIAgent(opts: RunOpenAIAgentOptions): Promise<RunOpenAIAgentResult> {
   const { client, velor, agentId, model, tools, maxTurns = 8, metadata } = opts;
 
   const execution = await velor.startExecution({
@@ -120,9 +118,7 @@ export async function runOpenAIAgent(
         messages.push({
           role: 'tool',
           tool_call_id: call.id,
-          content: `Invalid JSON arguments: ${
-            err instanceof Error ? err.message : String(err)
-          }`,
+          content: `Invalid JSON arguments: ${err instanceof Error ? err.message : String(err)}`,
         });
         continue;
       }
@@ -139,13 +135,9 @@ export async function runOpenAIAgent(
       if (result.status === 'denied') {
         content = `Blocked by Velor policy: ${result.reason}`;
       } else if (result.status === 'error') {
-        content =
-          result.error instanceof Error ? result.error.message : String(result.error);
+        content = result.error instanceof Error ? result.error.message : String(result.error);
       } else {
-        content =
-          typeof result.output === 'string'
-            ? result.output
-            : JSON.stringify(result.output);
+        content = typeof result.output === 'string' ? result.output : JSON.stringify(result.output);
       }
 
       messages.push({

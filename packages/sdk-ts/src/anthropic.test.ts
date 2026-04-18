@@ -11,8 +11,7 @@ import { runAnthropicAgent, type VelorTool } from './anthropic.js';
 type ScriptedResponse = {
   stop_reason: 'end_turn' | 'tool_use' | 'max_tokens' | 'stop_sequence';
   content: Array<
-    | { type: 'text'; text: string }
-    | { type: 'tool_use'; id: string; name: string; input: unknown }
+    { type: 'text'; text: string } | { type: 'tool_use'; id: string; name: string; input: unknown }
   >;
 };
 
@@ -140,12 +139,7 @@ describe('runAnthropicAgent', () => {
 
     const eventTypes = events.map((e) => e.type);
     // decision (turn 1) + action_requested + action_executed + decision (turn 2)
-    expect(eventTypes).toEqual([
-      'decision',
-      'action_requested',
-      'action_executed',
-      'decision',
-    ]);
+    expect(eventTypes).toEqual(['decision', 'action_requested', 'action_executed', 'decision']);
   });
 
   it('surfaces Velor deny as an is_error tool_result to the model', async () => {

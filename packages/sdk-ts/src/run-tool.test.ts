@@ -1,9 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type {
-  EvaluateActionRequest,
-  EvaluateActionResponse,
-  LogEventRequest,
-} from '@velor/schema';
+import type { EvaluateActionRequest, EvaluateActionResponse, LogEventRequest } from '@velor/schema';
 import type { VelorClient } from './client.js';
 import { runTool } from './run-tool.js';
 
@@ -159,7 +155,6 @@ describe('runTool', () => {
     });
 
     for (const evt of events) expect(evt.metadata).toEqual({ tenant: 'acme' });
-    for (const evaluation of evaluations)
-      expect(evaluation.metadata).toEqual({ tenant: 'acme' });
+    for (const evaluation of evaluations) expect(evaluation.metadata).toEqual({ tenant: 'acme' });
   });
 });

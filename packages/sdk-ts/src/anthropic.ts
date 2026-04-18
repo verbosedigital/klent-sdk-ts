@@ -144,8 +144,7 @@ export async function runAnthropicAgent(
           type: 'tool_result',
           tool_use_id: block.id,
           is_error: true,
-          content:
-            result.error instanceof Error ? result.error.message : String(result.error),
+          content: result.error instanceof Error ? result.error.message : String(result.error),
         });
       } else {
         toolResults.push({

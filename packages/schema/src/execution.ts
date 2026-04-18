@@ -1,12 +1,7 @@
 import { z } from 'zod';
 import { idSchema, metadataSchema, timestampSchema } from './common.js';
 
-export const executionStatusSchema = z.enum([
-  'running',
-  'completed',
-  'failed',
-  'cancelled',
-]);
+export const executionStatusSchema = z.enum(['running', 'completed', 'failed', 'cancelled']);
 export type ExecutionStatus = z.infer<typeof executionStatusSchema>;
 
 export const createExecutionRequestSchema = z.object({
