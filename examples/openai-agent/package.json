@@ -1,5 +1,5 @@
 {
-  "name": "@velor-example/openai-agent",
+  "name": "@argus-example/openai-agent",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,12 +9,12 @@
     "clean": "rm -rf .turbo *.tsbuildinfo"
   },
   "dependencies": {
-    "@velor/sdk": "workspace:*",
+    "@argus/sdk": "workspace:*",
     "openai": "^4.77.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "@velor/tsconfig": "workspace:*",
+    "@argus/tsconfig": "workspace:*",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
   }

@@ -1,8 +1,8 @@
 import type Anthropic from '@anthropic-ai/sdk';
-import type { VelorClient } from './client.js';
+import type { ArgusClient } from './client.js';
 import { runTool } from './run-tool.js';
 
-export interface VelorTool<TInput = Record<string, unknown>, TOutput = unknown> {
+export interface ArgusTool<TInput = Record<string, unknown>, TOutput = unknown> {
   name: string;
   description: string;
   input_schema: Anthropic.Tool.InputSchema;
@@ -11,11 +11,11 @@ export interface VelorTool<TInput = Record<string, unknown>, TOutput = unknown> 
 
 export interface RunAnthropicAgentOptions {
   client: Anthropic;
-  velor: VelorClient;
+  argus: ArgusClient;
   agentId: string;
   model: string;
   messages: Anthropic.MessageParam[];
-  tools: VelorTool[];
+  tools: ArgusTool[];
   maxTurns?: number;
   maxTokens?: number;
   system?: string;
@@ -31,23 +31,23 @@ export interface RunAnthropicAgentResult {
 }
 
 /**
- * Full-loop orchestrator for Anthropic tool-use agents with Velor in the path.
+ * Full-loop orchestrator for Anthropic tool-use agents with Argus in the path.
  *
  * For each turn:
  *  1. Calls `messages.create` and logs the reasoning step as a `decision` event.
- *  2. For each `tool_use` block, calls `velor.runTool` — which requests,
+ *  2. For each `tool_use` block, calls `argus.runTool` — which requests,
  *     evaluates, executes (or blocks), and logs the outcome.
  *  3. Feeds the tool results back as the next user message.
  *
  * Stops when the model returns `stop_reason === 'end_turn'` (or the turn cap
- * is hit). All timeline events land on a single Velor execution.
+ * is hit). All timeline events land on a single Argus execution.
  */
 export async function runAnthropicAgent(
   opts: RunAnthropicAgentOptions,
 ): Promise<RunAnthropicAgentResult> {
   const {
     client,
-    velor,
+    argus,
     agentId,
     model,
     tools,
@@ -57,7 +57,7 @@ export async function runAnthropicAgent(
     metadata,
   } = opts;
 
-  const execution = await velor.startExecution({
+  const execution = await argus.startExecution({
     agent_id: agentId,
     metadata: { ...metadata, model, tool_count: tools.length },
   });
@@ -89,7 +89,7 @@ export async function runAnthropicAgent(
     stopReason = response.stop_reason;
     const text = extractText(response.content);
 
-    velor.logEvent({
+    argus.logEvent({
       execution_id: execution.id,
       type: 'decision',
       payload: {
@@ -124,7 +124,7 @@ export async function runAnthropicAgent(
       }
 
       const input = block.input as Record<string, unknown>;
-      const result = await runTool(velor, {
+      const result = await runTool(argus, {
         execution_id: execution.id,
         tool: block.name,
         input,
@@ -137,7 +137,7 @@ export async function runAnthropicAgent(
           type: 'tool_result',
           tool_use_id: block.id,
           is_error: true,
-          content: `Blocked by Velor policy: ${result.reason}`,
+          content: `Blocked by Argus policy: ${result.reason}`,
         });
       } else if (result.status === 'error') {
         toolResults.push({
@@ -158,7 +158,7 @@ export async function runAnthropicAgent(
     messages.push({ role: 'user', content: toolResults });
   }
 
-  await velor.flush();
+  await argus.flush();
 
   return {
     executionId: execution.id,

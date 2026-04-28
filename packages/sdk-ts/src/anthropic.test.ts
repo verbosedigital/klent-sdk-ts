@@ -4,9 +4,9 @@ import type {
   EvaluateActionResponse,
   Execution,
   LogEventRequest,
-} from '@velor/schema';
-import type { VelorClient } from './client.js';
-import { runAnthropicAgent, type VelorTool } from './anthropic.js';
+} from '@argus/schema';
+import type { ArgusClient } from './client.js';
+import { runAnthropicAgent, type ArgusTool } from './anthropic.js';
 
 type ScriptedResponse = {
   stop_reason: 'end_turn' | 'tool_use' | 'max_tokens' | 'stop_sequence';
@@ -59,7 +59,7 @@ function makeVelorStub(decisions: EvaluateActionResponse[]) {
       events.push(body);
     },
     flush: vi.fn(async () => {}),
-  } as unknown as VelorClient;
+  } as unknown as ArgusClient;
   return { client, events };
 }
 
@@ -71,11 +71,11 @@ describe('runAnthropicAgent', () => {
         content: [{ type: 'text', text: 'Hello there' }],
       },
     ]);
-    const { client: velor, events } = makeVelorStub([]);
+    const { client: argus, events } = makeVelorStub([]);
 
     const result = await runAnthropicAgent({
       client: anthropic,
-      velor,
+      argus,
       agentId: 'test',
       model: 'claude-test',
       tools: [],
@@ -107,7 +107,7 @@ describe('runAnthropicAgent', () => {
         content: [{ type: 'text', text: "It's sunny in Lisbon." }],
       },
     ]);
-    const { client: velor, events } = makeVelorStub([
+    const { client: argus, events } = makeVelorStub([
       {
         decision: 'allow',
         matched_policy_id: null,
@@ -116,7 +116,7 @@ describe('runAnthropicAgent', () => {
       },
     ]);
 
-    const tools: VelorTool[] = [
+    const tools: ArgusTool[] = [
       {
         name: 'get_weather',
         description: 'weather',
@@ -127,7 +127,7 @@ describe('runAnthropicAgent', () => {
 
     const result = await runAnthropicAgent({
       client: anthropic,
-      velor,
+      argus,
       agentId: 'test',
       model: 'claude-test',
       tools,
@@ -142,7 +142,7 @@ describe('runAnthropicAgent', () => {
     expect(eventTypes).toEqual(['decision', 'action_requested', 'action_executed', 'decision']);
   });
 
-  it('surfaces Velor deny as an is_error tool_result to the model', async () => {
+  it('surfaces Argus deny as an is_error tool_result to the model', async () => {
     const { client: anthropic, snapshots } = makeAnthropicStub([
       {
         stop_reason: 'tool_use',
@@ -160,7 +160,7 @@ describe('runAnthropicAgent', () => {
         content: [{ type: 'text', text: "I can't — that's too much." }],
       },
     ]);
-    const { client: velor } = makeVelorStub([
+    const { client: argus } = makeVelorStub([
       {
         decision: 'deny',
         matched_policy_id: 'pol_limit',
@@ -170,7 +170,7 @@ describe('runAnthropicAgent', () => {
     ]);
 
     const handler = vi.fn(() => 'ok');
-    const tools: VelorTool[] = [
+    const tools: ArgusTool[] = [
       {
         name: 'transfer',
         description: 'money',
@@ -181,7 +181,7 @@ describe('runAnthropicAgent', () => {
 
     const result = await runAnthropicAgent({
       client: anthropic,
-      velor,
+      argus,
       agentId: 'test',
       model: 'claude-test',
       tools,
@@ -203,7 +203,7 @@ describe('runAnthropicAgent', () => {
       content: string;
     }>;
     expect(toolResults[0]?.is_error).toBe(true);
-    expect(toolResults[0]?.content).toContain('Blocked by Velor policy');
+    expect(toolResults[0]?.content).toContain('Blocked by Argus policy');
     expect(toolResults[0]?.content).toContain('Exceeds daily limit');
 
     expect(result.finalText).toBe("I can't — that's too much.");
@@ -227,11 +227,11 @@ describe('runAnthropicAgent', () => {
         content: [{ type: 'text', text: 'done' }],
       },
     ]);
-    const { client: velor } = makeVelorStub([]);
+    const { client: argus } = makeVelorStub([]);
 
     await runAnthropicAgent({
       client: anthropic,
-      velor,
+      argus,
       agentId: 'test',
       model: 'claude-test',
       tools: [],
@@ -263,11 +263,11 @@ describe('runAnthropicAgent', () => {
       ],
     }));
     const { client: anthropic, create } = makeAnthropicStub(neverEndingResponses);
-    const { client: velor } = makeVelorStub([]);
+    const { client: argus } = makeVelorStub([]);
 
     const result = await runAnthropicAgent({
       client: anthropic,
-      velor,
+      argus,
       agentId: 'test',
       model: 'claude-test',
       tools: [

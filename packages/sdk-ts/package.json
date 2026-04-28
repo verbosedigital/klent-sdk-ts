@@ -1,8 +1,8 @@
 {
-  "name": "@velor/sdk",
+  "name": "@argus/sdk",
   "version": "0.0.1",
   "license": "UNLICENSED",
-  "description": "Velor TypeScript SDK — control layer for AI agents",
+  "description": "Argus TypeScript SDK — control layer for AI agents",
   "keywords": [
     "ai",
     "agents",
@@ -10,18 +10,18 @@
     "guardrails",
     "llm",
     "policy",
-    "velor"
+    "argus"
   ],
-  "homepage": "https://velor.dev",
+  "homepage": "https://argus.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/velor/velor.git",
+    "url": "git+https://github.com/argus/argus.git",
     "directory": "packages/sdk-ts"
   },
   "bugs": {
-    "url": "https://github.com/velor/velor/issues"
+    "url": "https://github.com/argus/argus/issues"
   },
-  "author": "Velor",
+  "author": "Argus",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -59,7 +59,7 @@
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
-    "@velor/schema": "workspace:*"
+    "@argus/schema": "workspace:*"
   },
   "peerDependencies": {
     "@anthropic-ai/sdk": ">=0.40.0",
@@ -75,7 +75,7 @@
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
-    "@velor/tsconfig": "workspace:*",
+    "@argus/tsconfig": "workspace:*",
     "openai": "^4.77.0",
     "typescript": "^5.6.3",
     "vitest": "^2.1.8"

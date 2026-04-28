@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { EvaluateActionResponse, LogEventRequest, Execution } from '@velor/schema';
-import type { VelorClient } from './client.js';
-import { runOpenAIAgent, type VelorOpenAITool } from './openai.js';
+import type { EvaluateActionResponse, LogEventRequest, Execution } from '@argus/schema';
+import type { ArgusClient } from './client.js';
+import { runOpenAIAgent, type ArgusOpenAITool } from './openai.js';
 
 type ScriptedChoice = {
   finish_reason: 'stop' | 'tool_calls' | 'length';
@@ -58,7 +58,7 @@ function makeVelorStub(decisions: EvaluateActionResponse[] = []) {
     }),
     logEvent: (body: LogEventRequest) => events.push(body),
     flush: vi.fn(async () => {}),
-  } as unknown as VelorClient;
+  } as unknown as ArgusClient;
   return { client, events };
 }
 
@@ -74,11 +74,11 @@ describe('runOpenAIAgent', () => {
         ],
       },
     ]);
-    const { client: velor } = makeVelorStub();
+    const { client: argus } = makeVelorStub();
 
     const result = await runOpenAIAgent({
       client: openai,
-      velor,
+      argus,
       agentId: 'test',
       model: 'gpt-test',
       tools: [],
@@ -122,7 +122,7 @@ describe('runOpenAIAgent', () => {
         ],
       },
     ]);
-    const { client: velor, events } = makeVelorStub([
+    const { client: argus, events } = makeVelorStub([
       {
         decision: 'allow',
         matched_policy_id: null,
@@ -131,7 +131,7 @@ describe('runOpenAIAgent', () => {
       },
     ]);
 
-    const tools: VelorOpenAITool[] = [
+    const tools: ArgusOpenAITool[] = [
       {
         name: 'get_weather',
         description: 'weather',
@@ -142,7 +142,7 @@ describe('runOpenAIAgent', () => {
 
     const result = await runOpenAIAgent({
       client: openai,
-      velor,
+      argus,
       agentId: 'test',
       model: 'gpt-test',
       tools,
@@ -191,7 +191,7 @@ describe('runOpenAIAgent', () => {
         ],
       },
     ]);
-    const { client: velor } = makeVelorStub([
+    const { client: argus } = makeVelorStub([
       {
         decision: 'deny',
         matched_policy_id: 'pol_cap',
@@ -203,7 +203,7 @@ describe('runOpenAIAgent', () => {
     const handler = vi.fn(() => 'ok');
     await runOpenAIAgent({
       client: openai,
-      velor,
+      argus,
       agentId: 'test',
       model: 'gpt-test',
       tools: [
@@ -225,7 +225,7 @@ describe('runOpenAIAgent', () => {
     const lastMessage = secondCallArgs.messages[secondCallArgs.messages.length - 1]!;
     expect(lastMessage.role).toBe('tool');
     expect(lastMessage.tool_call_id).toBe('call_1');
-    expect(lastMessage.content).toContain('Blocked by Velor policy');
+    expect(lastMessage.content).toContain('Blocked by Argus policy');
     expect(lastMessage.content).toContain('Over the cap');
   });
 
@@ -258,11 +258,11 @@ describe('runOpenAIAgent', () => {
         ],
       },
     ]);
-    const { client: velor } = makeVelorStub([]);
+    const { client: argus } = makeVelorStub([]);
 
     const result = await runOpenAIAgent({
       client: openai,
-      velor,
+      argus,
       agentId: 'test',
       model: 'gpt-test',
       tools: [

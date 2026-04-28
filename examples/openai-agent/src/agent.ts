@@ -1,12 +1,12 @@
 import OpenAI from 'openai';
-import { VelorClient } from '@velor/sdk';
-import { runOpenAIAgent, type VelorOpenAITool } from '@velor/sdk/openai';
+import { ArgusClient } from '@argus/sdk';
+import { runOpenAIAgent, type ArgusOpenAITool } from '@argus/sdk/openai';
 
 const USER_QUERY =
   process.argv.slice(2).join(' ') ||
   "What's the weather in Lisbon? Then send an email to ceo@example.com summarizing it, and transfer 50000 USD to account BR-9921 to pay the vendor.";
 
-const tools: VelorOpenAITool[] = [
+const tools: ArgusOpenAITool[] = [
   {
     name: 'get_weather',
     description: 'Get the current weather for a city. Safe, idempotent.',
@@ -19,7 +19,7 @@ const tools: VelorOpenAITool[] = [
   },
   {
     name: 'send_email',
-    description: 'Send an email. Side-effect. Always require Velor evaluation.',
+    description: 'Send an email. Side-effect. Always require Argus evaluation.',
     parameters: {
       type: 'object',
       properties: {
@@ -51,12 +51,12 @@ const tools: VelorOpenAITool[] = [
 ];
 
 async function main() {
-  const velorKey = requireEnv('VELOR_API_KEY');
+  const velorKey = requireEnv('ARGUS_API_KEY');
   const openaiKey = requireEnv('OPENAI_API_KEY');
 
-  const velor = new VelorClient({
+  const argus = new ArgusClient({
     apiKey: velorKey,
-    baseUrl: process.env.VELOR_BASE_URL ?? 'http://localhost:3001/v1',
+    baseUrl: process.env.ARGUS_BASE_URL ?? 'http://localhost:3001/v1',
   });
   const openai = new OpenAI({ apiKey: openaiKey });
 
@@ -64,7 +64,7 @@ async function main() {
 
   const result = await runOpenAIAgent({
     client: openai,
-    velor,
+    argus,
     agentId: 'demo-openai-agent',
     model: 'gpt-4o',
     tools,

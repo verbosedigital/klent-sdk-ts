@@ -1,8 +1,8 @@
 import type OpenAI from 'openai';
-import type { VelorClient } from './client.js';
+import type { ArgusClient } from './client.js';
 import { runTool } from './run-tool.js';
 
-export interface VelorOpenAITool<TInput = Record<string, unknown>, TOutput = unknown> {
+export interface ArgusOpenAITool<TInput = Record<string, unknown>, TOutput = unknown> {
   name: string;
   description: string;
   /** JSON Schema describing the function arguments. */
@@ -12,11 +12,11 @@ export interface VelorOpenAITool<TInput = Record<string, unknown>, TOutput = unk
 
 export interface RunOpenAIAgentOptions {
   client: OpenAI;
-  velor: VelorClient;
+  argus: ArgusClient;
   agentId: string;
   model: string;
   messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[];
-  tools: VelorOpenAITool[];
+  tools: ArgusOpenAITool[];
   maxTurns?: number;
   metadata?: Record<string, unknown>;
 }
@@ -30,19 +30,19 @@ export interface RunOpenAIAgentResult {
 }
 
 /**
- * Full-loop orchestrator for OpenAI tool-use agents with Velor in the path.
+ * Full-loop orchestrator for OpenAI tool-use agents with Argus in the path.
  *
  * Uses chat.completions. For each turn:
  *  1. Calls `chat.completions.create` and logs a `decision` event.
- *  2. For each `tool_calls[]` entry, calls `velor.runTool` (request → evaluate
+ *  2. For each `tool_calls[]` entry, calls `argus.runTool` (request → evaluate
  *     → execute-or-block → log). Denials become `role: 'tool'` messages with
  *     the policy reason so the model can adjust its plan.
  *  3. Stops when the model returns without tool calls.
  */
 export async function runOpenAIAgent(opts: RunOpenAIAgentOptions): Promise<RunOpenAIAgentResult> {
-  const { client, velor, agentId, model, tools, maxTurns = 8, metadata } = opts;
+  const { client, argus, agentId, model, tools, maxTurns = 8, metadata } = opts;
 
-  const execution = await velor.startExecution({
+  const execution = await argus.startExecution({
     agent_id: agentId,
     metadata: { ...metadata, model, tool_count: tools.length },
   });
@@ -79,7 +79,7 @@ export async function runOpenAIAgent(opts: RunOpenAIAgentOptions): Promise<RunOp
     const assistantMessage = choice.message;
     const text = assistantMessage.content ?? '';
 
-    velor.logEvent({
+    argus.logEvent({
       execution_id: execution.id,
       type: 'decision',
       payload: {
@@ -123,7 +123,7 @@ export async function runOpenAIAgent(opts: RunOpenAIAgentOptions): Promise<RunOp
         continue;
       }
 
-      const result = await runTool(velor, {
+      const result = await runTool(argus, {
         execution_id: execution.id,
         tool: call.function.name,
         input,
@@ -133,7 +133,7 @@ export async function runOpenAIAgent(opts: RunOpenAIAgentOptions): Promise<RunOp
 
       let content: string;
       if (result.status === 'denied') {
-        content = `Blocked by Velor policy: ${result.reason}`;
+        content = `Blocked by Argus policy: ${result.reason}`;
       } else if (result.status === 'error') {
         content = result.error instanceof Error ? result.error.message : String(result.error);
       } else {
@@ -148,7 +148,7 @@ export async function runOpenAIAgent(opts: RunOpenAIAgentOptions): Promise<RunOp
     }
   }
 
-  await velor.flush();
+  await argus.flush();
 
   return {
     executionId: execution.id,

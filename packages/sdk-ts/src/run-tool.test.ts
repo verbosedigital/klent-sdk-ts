@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { EvaluateActionRequest, EvaluateActionResponse, LogEventRequest } from '@velor/schema';
-import type { VelorClient } from './client.js';
+import type { EvaluateActionRequest, EvaluateActionResponse, LogEventRequest } from '@argus/schema';
+import type { ArgusClient } from './client.js';
 import { runTool } from './run-tool.js';
 
 function makeFakeClient(decision: EvaluateActionResponse) {
@@ -15,7 +15,7 @@ function makeFakeClient(decision: EvaluateActionResponse) {
       evaluations.push(body);
       return decision;
     }),
-  } as unknown as VelorClient;
+  } as unknown as ArgusClient;
 
   return { client, events, evaluations };
 }

@@ -1,4 +1,4 @@
-import type { LogEventRequest } from '@velor/schema';
+import type { LogEventRequest } from '@argus/schema';
 
 export type FlushFn = (events: LogEventRequest[]) => Promise<void>;
 

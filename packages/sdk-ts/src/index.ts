@@ -1,5 +1,5 @@
-export { VelorClient } from './client.js';
-export type { VelorClientOptions } from './client.js';
+export { ArgusClient } from './client.js';
+export type { ArgusClientOptions } from './client.js';
 export { runTool } from './run-tool.js';
 export type { RunToolArgs, RunToolResult } from './run-tool.js';
 export type {
@@ -12,4 +12,4 @@ export type {
   EvaluateActionResponse,
   PolicyEffect,
   PolicyOperator,
-} from '@velor/schema';
+} from '@argus/schema';

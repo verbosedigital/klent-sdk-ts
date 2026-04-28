@@ -1,12 +1,12 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { VelorClient } from '@velor/sdk';
-import { runAnthropicAgent, type VelorTool } from '@velor/sdk/anthropic';
+import { ArgusClient } from '@argus/sdk';
+import { runAnthropicAgent, type ArgusTool } from '@argus/sdk/anthropic';
 
 const USER_QUERY =
   process.argv.slice(2).join(' ') ||
   "What's the weather in Lisbon? Then send an email to ceo@example.com summarizing it, and transfer 50000 USD to account BR-9921 to pay the vendor.";
 
-const tools: VelorTool[] = [
+const tools: ArgusTool[] = [
   {
     name: 'get_weather',
     description: 'Get the current weather for a city. Safe, idempotent.',
@@ -19,7 +19,7 @@ const tools: VelorTool[] = [
   },
   {
     name: 'send_email',
-    description: 'Send an email. Side-effect. Always require Velor evaluation.',
+    description: 'Send an email. Side-effect. Always require Argus evaluation.',
     input_schema: {
       type: 'object',
       properties: {
@@ -51,12 +51,12 @@ const tools: VelorTool[] = [
 ];
 
 async function main() {
-  const velorKey = requireEnv('VELOR_API_KEY');
+  const velorKey = requireEnv('ARGUS_API_KEY');
   const anthropicKey = requireEnv('ANTHROPIC_API_KEY');
 
-  const velor = new VelorClient({
+  const argus = new ArgusClient({
     apiKey: velorKey,
-    baseUrl: process.env.VELOR_BASE_URL ?? 'http://localhost:3001/v1',
+    baseUrl: process.env.ARGUS_BASE_URL ?? 'http://localhost:3001/v1',
   });
   const anthropic = new Anthropic({ apiKey: anthropicKey });
 
@@ -64,7 +64,7 @@ async function main() {
 
   const result = await runAnthropicAgent({
     client: anthropic,
-    velor,
+    argus,
     agentId: 'demo-agent',
     model: 'claude-sonnet-4-6',
     tools,

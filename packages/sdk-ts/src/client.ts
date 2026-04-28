@@ -4,10 +4,10 @@ import type {
   EvaluateActionResponse,
   Execution,
   LogEventRequest,
-} from '@velor/schema';
+} from '@argus/schema';
 import { EventBuffer } from './event-buffer.js';
 
-export interface VelorClientOptions {
+export interface ArgusClientOptions {
   apiKey: string;
   baseUrl?: string;
   fetch?: typeof fetch;
@@ -19,18 +19,18 @@ export interface VelorClientOptions {
   maxRetries?: number;
 }
 
-const DEFAULT_BASE_URL = 'https://api.velor.dev/v1';
+const DEFAULT_BASE_URL = 'https://api.argus.dev/v1';
 
-export class VelorClient {
+export class ArgusClient {
   private readonly apiKey: string;
   private readonly baseUrl: string;
   private readonly fetchImpl: typeof fetch;
   private readonly maxRetries: number;
   private readonly eventBuffer: EventBuffer;
 
-  constructor(options: VelorClientOptions) {
+  constructor(options: ArgusClientOptions) {
     if (!options.apiKey) {
-      throw new Error('VelorClient: apiKey is required');
+      throw new Error('ArgusClient: apiKey is required');
     }
     this.apiKey = options.apiKey;
     this.baseUrl = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '');
@@ -88,10 +88,10 @@ export class VelorClient {
         }
 
         if (res.status >= 500 || res.status === 429) {
-          lastErr = new Error(`Velor ${method} ${path}: ${res.status}`);
+          lastErr = new Error(`Argus ${method} ${path}: ${res.status}`);
         } else {
           const text = await res.text().catch(() => '');
-          throw new Error(`Velor ${method} ${path}: ${res.status} ${text}`);
+          throw new Error(`Argus ${method} ${path}: ${res.status} ${text}`);
         }
       } catch (err) {
         lastErr = err;
@@ -102,7 +102,7 @@ export class VelorClient {
       await sleep(backoffMs(attempt));
     }
 
-    throw lastErr ?? new Error(`Velor ${method} ${path} failed`);
+    throw lastErr ?? new Error(`Argus ${method} ${path} failed`);
   }
 }
 

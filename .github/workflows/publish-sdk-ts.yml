@@ -28,15 +28,15 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      - name: Build @velor/schema + @velor/sdk
-        run: pnpm turbo run build --filter=@velor/schema --filter=@velor/sdk
+      - name: Build @argus/schema + @argus/sdk
+        run: pnpm turbo run build --filter=@argus/schema --filter=@argus/sdk
 
-      - name: Publish @velor/schema
-        run: pnpm --filter @velor/schema publish --access public --no-git-checks
+      - name: Publish @argus/schema
+        run: pnpm --filter @argus/schema publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish @velor/sdk
-        run: pnpm --filter @velor/sdk publish --access public --no-git-checks
+      - name: Publish @argus/sdk
+        run: pnpm --filter @argus/sdk publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

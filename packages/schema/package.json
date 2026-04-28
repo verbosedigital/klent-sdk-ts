@@ -1,21 +1,21 @@
 {
-  "name": "@velor/schema",
+  "name": "@argus/schema",
   "version": "0.0.1",
   "license": "UNLICENSED",
-  "description": "Zod schemas and TypeScript types for the Velor API — shared between the SDK and server.",
+  "description": "Zod schemas and TypeScript types for the Argus API — shared between the SDK and server.",
   "keywords": [
-    "velor",
+    "argus",
     "zod",
     "schema",
     "types"
   ],
-  "homepage": "https://velor.dev",
+  "homepage": "https://argus.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/velor/velor.git",
+    "url": "git+https://github.com/argus/argus.git",
     "directory": "packages/schema"
   },
-  "author": "Velor",
+  "author": "Argus",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -45,7 +45,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@velor/tsconfig": "workspace:*",
+    "@argus/tsconfig": "workspace:*",
     "typescript": "^5.6.3"
   }
 }

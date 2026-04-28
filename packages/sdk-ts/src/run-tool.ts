@@ -1,10 +1,10 @@
-import type { VelorClient } from './client.js';
+import type { ArgusClient } from './client.js';
 
 export type RunToolArgs<T> = {
   execution_id: string;
   tool: string;
   input: Record<string, unknown>;
-  /** Called only if Velor's policy engine allows (or modifies) the action. */
+  /** Called only if Argus's policy engine allows (or modifies) the action. */
   execute: (input: Record<string, unknown>) => Promise<T> | T;
   /** Optional metadata attached to every event emitted by this call. */
   metadata?: Record<string, unknown>;
@@ -16,7 +16,7 @@ export type RunToolResult<T> =
   | { status: 'error'; error: unknown };
 
 /**
- * Wrap a single tool call with the full Velor decision loop:
+ * Wrap a single tool call with the full Argus decision loop:
  *   action_requested → evaluate → (action_executed | action_blocked) → error?
  *
  * Callers get one decision back instead of writing the five-step boilerplate by
@@ -24,19 +24,19 @@ export type RunToolResult<T> =
  * already have to `execute`.
  */
 export async function runTool<T>(
-  velor: VelorClient,
+  argus: ArgusClient,
   args: RunToolArgs<T>,
 ): Promise<RunToolResult<T>> {
   const { execution_id, tool, input, execute, metadata } = args;
 
-  velor.logEvent({
+  argus.logEvent({
     execution_id,
     type: 'action_requested',
     payload: { tool, input },
     metadata,
   });
 
-  const decision = await velor.evaluateAction({
+  const decision = await argus.evaluateAction({
     execution_id,
     tool,
     input,
@@ -58,7 +58,7 @@ export async function runTool<T>(
 
   try {
     const output = await execute(effectiveInput);
-    velor.logEvent({
+    argus.logEvent({
       execution_id,
       type: 'action_executed',
       payload: { tool, output },
@@ -70,7 +70,7 @@ export async function runTool<T>(
       matchedPolicyId: decision.matched_policy_id,
     };
   } catch (err) {
-    velor.logEvent({
+    argus.logEvent({
       execution_id,
       type: 'error',
       payload: {

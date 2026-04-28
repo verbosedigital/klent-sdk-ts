@@ -1,5 +1,5 @@
 {
-  "extends": "@velor/tsconfig/node.json",
+  "extends": "@argus/tsconfig/node.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",

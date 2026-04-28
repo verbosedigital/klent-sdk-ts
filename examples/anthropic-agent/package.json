@@ -1,5 +1,5 @@
 {
-  "name": "@velor-example/anthropic-agent",
+  "name": "@argus-example/anthropic-agent",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,11 +10,11 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
-    "@velor/sdk": "workspace:*"
+    "@argus/sdk": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "@velor/tsconfig": "workspace:*",
+    "@argus/tsconfig": "workspace:*",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
   }

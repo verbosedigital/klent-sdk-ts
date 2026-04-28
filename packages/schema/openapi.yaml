@@ -1,21 +1,21 @@
 openapi: 3.1.0
 info:
-  title: Velor API
+  title: Argus API
   version: 0.1.0
   description: |
-    Velor is the control, observability, and evaluation layer for AI agents.
+    Argus is the control, observability, and evaluation layer for AI agents.
     This spec covers the stable `/v1` surface consumed by the official SDKs and
     any custom integration.
   contact:
-    name: Velor
-    url: https://velor.dev
+    name: Argus
+    url: https://argus.dev
   license:
     name: Proprietary
 servers:
-  - url: https://api.velor.dev/v1
+  - url: https://api.argus.dev/v1
     description: Hosted production
   - url: http://localhost:3001/v1
-    description: Local (docker-compose + `pnpm --filter @velor/api dev`)
+    description: Local (docker-compose + `pnpm --filter @argus/api dev`)
 
 security:
   - BearerAuth: []
@@ -223,9 +223,9 @@ components:
     BearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: vk_live_…
+      bearerFormat: ak_live_…
       description: |
-        API key minted in the dashboard at `/api-keys` or via `pnpm --filter @velor/api seed`.
+        API key minted in the dashboard at `/api-keys` or via `pnpm --filter @argus/api seed`.
         Include as `Authorization: Bearer <key>`.
 
   responses:
