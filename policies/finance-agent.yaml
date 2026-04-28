@@ -1,0 +1,59 @@
+policies:
+  # Hard cap: nothing over $10k goes through. Period.
+  - name: finance / hard-cap-10k-usd
+    description: Refuse any USD transfer above 10,000.
+    enforcement_mode: enforce
+    effect: deny
+    conditions:
+      - field: tool
+        operator: equals
+        value: transfer_funds
+      - field: input.currency
+        operator: equals
+        value: USD
+      - field: input.amount
+        operator: greater_than
+        value: 10000
+
+  # Mid-range transfers ($1k–10k) are blocked too until human-in-the-loop
+  # ships. For now treat them as deny — the agent must surface for review.
+  - name: finance / mid-range-needs-review
+    description: |
+      Mid-range transfers require human review. Once HITL `approve` lands,
+      this becomes effect=approve and queues a confirmation in the dashboard.
+    enforcement_mode: enforce
+    effect: deny
+    conditions:
+      - field: tool
+        operator: equals
+        value: transfer_funds
+      - field: input.amount
+        operator: greater_than
+        value: 1000
+
+  # Always CC the audit address on outbound emails. Doesn't block the call —
+  # just modifies it.
+  - name: finance / cc-audit-on-email
+    description: Modify outbound emails to CC the audit address.
+    enforcement_mode: enforce
+    effect: modify
+    conditions:
+      - field: tool
+        operator: equals
+        value: send_email
+    modifications:
+      - field: input.cc
+        value: audit@argus.dev
+
+  # Refuse any tool whose name contains "delete" or "drop" against finance
+  # ledgers. Defensive — agents should never destroy ledger rows.
+  - name: finance / no-ledger-mutation
+    enforcement_mode: enforce
+    effect: deny
+    conditions:
+      - field: tool
+        operator: contains
+        value: delete
+      - field: input.resource
+        operator: ends_with
+        value: ledger

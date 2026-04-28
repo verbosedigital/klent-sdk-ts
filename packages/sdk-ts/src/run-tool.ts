@@ -56,12 +56,15 @@ export async function runTool<T>(
       ? applyModifications(input, decision.modifications)
       : input;
 
+  const start = performance.now();
   try {
     const output = await execute(effectiveInput);
+    const duration_ms = Math.round(performance.now() - start);
     argus.logEvent({
       execution_id,
       type: 'action_executed',
       payload: { tool, output },
+      duration_ms,
       metadata,
     });
     return {
@@ -70,6 +73,7 @@ export async function runTool<T>(
       matchedPolicyId: decision.matched_policy_id,
     };
   } catch (err) {
+    const duration_ms = Math.round(performance.now() - start);
     argus.logEvent({
       execution_id,
       type: 'error',
@@ -77,6 +81,7 @@ export async function runTool<T>(
         tool,
         message: err instanceof Error ? err.message : String(err),
       },
+      duration_ms,
       metadata,
     });
     return { status: 'error', error: err };

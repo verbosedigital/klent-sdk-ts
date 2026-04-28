@@ -1,0 +1,56 @@
+policies:
+  # Default-deny posture: everything is blocked unless an explicit allow
+  # earlier in the list whitelists it.
+
+  # ---- Explicit allowlist ----
+
+  - name: sandbox / allow read-only weather
+    description: Read-only get_weather is fine.
+    enforcement_mode: enforce
+    effect: allow
+    conditions:
+      - field: tool
+        operator: equals
+        value: get_weather
+
+  - name: sandbox / allow read-only knowledge lookup
+    enforcement_mode: enforce
+    effect: allow
+    conditions:
+      - field: tool
+        operator: equals
+        value: knowledge_lookup
+
+  - name: sandbox / allow time
+    enforcement_mode: enforce
+    effect: allow
+    conditions:
+      - field: tool
+        operator: equals
+        value: get_time
+
+  # ---- Shadow surveillance ----
+
+  # Watch for outbound email attempts. Don't block (yet) — record so we can
+  # decide if/when to add a real policy.
+  - name: sandbox / shadow watch email
+    description: Surface every email attempt without affecting the call.
+    enforcement_mode: shadow
+    effect: deny
+    conditions:
+      - field: tool
+        operator: equals
+        value: send_email
+
+  # ---- Catch-all deny ----
+
+  # Denies a wildcard that always matches. Put this last — earlier
+  # allow-policies short-circuit before the engine reaches this row.
+  - name: sandbox / deny everything else
+    description: Default deny on every tool not explicitly allowed above.
+    enforcement_mode: enforce
+    effect: deny
+    conditions:
+      - field: tool
+        operator: not_equals
+        value: __never__

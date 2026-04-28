@@ -1,0 +1,57 @@
+policies:
+  # Block destructive shell tools outright. Agents that need to delete files
+  # should use a sandboxed wrapper, not these.
+  - name: dev-safe / no-rm-rf
+    description: Block any shell or file tool with a destructive recursive flag.
+    enforcement_mode: enforce
+    effect: deny
+    conditions:
+      - field: input.command
+        operator: contains
+        value: rm -rf
+
+  # Outbound network is allowed only to a tight list of trusted domains.
+  # Catch-all deny goes at the bottom.
+  - name: dev-safe / network allowlist — github
+    description: Allow GitHub over HTTPS for CI / repo-aware tools.
+    enforcement_mode: enforce
+    effect: allow
+    conditions:
+      - field: tool
+        operator: equals
+        value: http_request
+      - field: input.host
+        operator: ends_with
+        value: github.com
+
+  - name: dev-safe / network allowlist — npm
+    enforcement_mode: enforce
+    effect: allow
+    conditions:
+      - field: tool
+        operator: equals
+        value: http_request
+      - field: input.host
+        operator: ends_with
+        value: registry.npmjs.org
+
+  - name: dev-safe / no-secret-files
+    description: Refuse to read .env, credentials.json, anything in ~/.ssh.
+    enforcement_mode: enforce
+    effect: deny
+    conditions:
+      - field: tool
+        operator: equals
+        value: read_file
+      - field: input.path
+        operator: contains
+        value: .env
+
+  - name: dev-safe / catch-all network deny
+    description: Default deny on http_request — only the explicit allows above pass.
+    enforcement_mode: enforce
+    effect: deny
+    conditions:
+      - field: tool
+        operator: equals
+        value: http_request

@@ -66,11 +66,13 @@ export async function runOpenAIAgent(opts: RunOpenAIAgentOptions): Promise<RunOp
   for (let turn = 1; turn <= maxTurns; turn++) {
     turns = turn;
 
+    const llmStart = performance.now();
     const response = await client.chat.completions.create({
       model,
       messages,
       tools: toolDefinitions,
     });
+    const llmDurationMs = Math.round(performance.now() - llmStart);
 
     const choice = response.choices[0];
     if (!choice) break;
@@ -87,6 +89,7 @@ export async function runOpenAIAgent(opts: RunOpenAIAgentOptions): Promise<RunOp
         finish_reason: finishReason,
         text: text || undefined,
       },
+      duration_ms: llmDurationMs,
       metadata,
     });
 

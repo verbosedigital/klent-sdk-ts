@@ -78,6 +78,7 @@ export async function runAnthropicAgent(
   for (let turn = 1; turn <= maxTurns; turn++) {
     turns = turn;
 
+    const llmStart = performance.now();
     const response = await client.messages.create({
       model,
       max_tokens: maxTokens,
@@ -85,6 +86,7 @@ export async function runAnthropicAgent(
       tools: toolDefinitions,
       messages,
     });
+    const llmDurationMs = Math.round(performance.now() - llmStart);
 
     stopReason = response.stop_reason;
     const text = extractText(response.content);
@@ -97,6 +99,7 @@ export async function runAnthropicAgent(
         stop_reason: response.stop_reason,
         text: text || undefined,
       },
+      duration_ms: llmDurationMs,
       metadata,
     });
 

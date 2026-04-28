@@ -15,6 +15,8 @@ export const logEventRequestSchema = z.object({
   type: eventTypeSchema,
   payload: z.record(z.string(), z.unknown()).default({}),
   metadata: metadataSchema.optional(),
+  /** Wall-clock duration of the work this event represents, in milliseconds. */
+  duration_ms: z.number().int().nonnegative().optional(),
   occurred_at: timestampSchema.optional(),
 });
 export type LogEventRequest = z.infer<typeof logEventRequestSchema>;
@@ -26,6 +28,7 @@ export const eventSchema = z.object({
   type: eventTypeSchema,
   payload: z.record(z.string(), z.unknown()),
   metadata: metadataSchema,
+  duration_ms: z.number().int().nonnegative().nullable(),
   occurred_at: timestampSchema,
   received_at: timestampSchema,
 });
