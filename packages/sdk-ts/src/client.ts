@@ -69,10 +69,7 @@ export class ArgusClient {
    * read. The HTTP retry loop is bypassed for long polls so timeouts don't
    * snowball.
    */
-  async getPendingAction(
-    id: string,
-    options: { waitMs?: number } = {},
-  ): Promise<PendingAction> {
+  async getPendingAction(id: string, options: { waitMs?: number } = {}): Promise<PendingAction> {
     const waitMs = options.waitMs ?? 0;
     if (waitMs > 0) {
       // Long polls bypass the retry/backoff loop — the wait *is* the budget.

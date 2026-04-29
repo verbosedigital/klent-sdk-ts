@@ -26,10 +26,7 @@ function makeFakeClient(decision: EvaluateActionResponse) {
 }
 
 /** Stub a client that scripts a sequence of pending-action poll responses. */
-function makeFakePollingClient(
-  decision: EvaluateActionResponse,
-  pollResponses: PendingAction[],
-) {
+function makeFakePollingClient(decision: EvaluateActionResponse, pollResponses: PendingAction[]) {
   const events: LogEventRequest[] = [];
   const evaluations: EvaluateActionRequest[] = [];
   const polls: Array<{ id: string; waitMs: number }> = [];
