@@ -6,6 +6,12 @@ export const eventTypeSchema = z.enum([
   'action_requested',
   'action_executed',
   'action_blocked',
+  /** Engine returned `steer` — the SDK is about to run a substituted tool. */
+  'action_steered',
+  /** Engine returned `approve` — the action is parked awaiting human review. */
+  'pending_approval',
+  /** A pending action was resolved (approved or rejected) by a human. */
+  'approval_resolved',
   'error',
 ]);
 export type EventType = z.infer<typeof eventTypeSchema>;

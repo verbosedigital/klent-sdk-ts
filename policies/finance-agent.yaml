@@ -15,14 +15,14 @@ policies:
         operator: greater_than
         value: 10000
 
-  # Mid-range transfers ($1k–10k) are blocked too until human-in-the-loop
-  # ships. For now treat them as deny — the agent must surface for review.
+  # Mid-range transfers ($1k–10k) require human review. The action is parked
+  # in pending_actions until a reviewer approves or rejects from the
+  # dashboard. The SDK can wait synchronously (approval.wait) or return
+  # pending and let the agent decide what to do.
   - name: finance / mid-range-needs-review
-    description: |
-      Mid-range transfers require human review. Once HITL `approve` lands,
-      this becomes effect=approve and queues a confirmation in the dashboard.
+    description: Pause $1k–10k USD transfers for human approval.
     enforcement_mode: enforce
-    effect: deny
+    effect: approve
     conditions:
       - field: tool
         operator: equals

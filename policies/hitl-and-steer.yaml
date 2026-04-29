@@ -1,0 +1,55 @@
+# Sample pack demonstrating Phase-2 effects: approve (HITL) and steer (redirect).
+#
+# Apply with:
+#   pnpm --filter @argus/api policies:apply <project_id> policies/hitl-and-steer.yaml
+
+policies:
+  # Human-in-the-loop: pause production database writes until a human approves
+  # them in the dashboard. Approve resolutions land in `approval_resolved`
+  # events; rejected ones surface as the SDK's deny `reason`.
+  - name: hitl / approve-prod-writes
+    description: Hold prod DB writes for human review.
+    enforcement_mode: enforce
+    effect: approve
+    conditions:
+      - field: tool
+        operator: equals
+        value: db_write
+      - field: input.env
+        operator: equals
+        value: prod
+
+  # Steering: in non-prod environments, transparently redirect prod-pointed
+  # writes to the dev DB. The agent doesn't know — it sees a successful tool
+  # result with the dev-DB output. Stronger than `modify` because the tool
+  # itself changes (db_write → db_write_dev), not just the input fields.
+  - name: steer / prod-writes-to-dev-in-staging
+    description: In staging, redirect any "prod" db_write to the dev DB.
+    enforcement_mode: enforce
+    effect: steer
+    conditions:
+      - field: metadata.environment
+        operator: equals
+        value: staging
+      - field: tool
+        operator: equals
+        value: db_write
+    redirect_to:
+      tool: db_write_dev
+      input:
+        env: dev
+
+  # Shadow approve: collect the volume of "would-have-paused" actions for a
+  # week before flipping to enforce. The action runs unblocked, but the
+  # would-have-paused decision is recorded on the timeline as a shadow event.
+  - name: hitl / shadow-pause-large-emails
+    description: Dry-run gate on bulk emails — counts without blocking.
+    enforcement_mode: shadow
+    effect: approve
+    conditions:
+      - field: tool
+        operator: equals
+        value: send_email
+      - field: input.recipient_count
+        operator: greater_than
+        value: 100

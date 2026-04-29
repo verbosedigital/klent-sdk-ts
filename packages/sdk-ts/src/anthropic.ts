@@ -142,6 +142,16 @@ export async function runAnthropicAgent(
           is_error: true,
           content: `Blocked by Argus policy: ${result.reason}`,
         });
+      } else if (result.status === 'pending') {
+        // Surface pending state to the model rather than blocking the loop.
+        // Callers wanting synchronous wait should use `runTool` with
+        // `approval.wait` directly.
+        toolResults.push({
+          type: 'tool_result',
+          tool_use_id: block.id,
+          is_error: true,
+          content: `Awaiting human approval (pending_action_id=${result.pendingActionId}). ${result.reason}`,
+        });
       } else if (result.status === 'error') {
         toolResults.push({
           type: 'tool_result',

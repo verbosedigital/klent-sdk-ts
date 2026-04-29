@@ -127,6 +127,8 @@ describe('runOpenAIAgent', () => {
         decision: 'allow',
         matched_policy_id: null,
         modifications: null,
+        redirect_to: null,
+        pending_action_id: null,
         reason: null,
       },
     ]);
@@ -196,6 +198,8 @@ describe('runOpenAIAgent', () => {
         decision: 'deny',
         matched_policy_id: 'pol_cap',
         modifications: null,
+        redirect_to: null,
+        pending_action_id: null,
         reason: 'Over the cap',
       },
     ]);

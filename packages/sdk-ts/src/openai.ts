@@ -137,6 +137,12 @@ export async function runOpenAIAgent(opts: RunOpenAIAgentOptions): Promise<RunOp
       let content: string;
       if (result.status === 'denied') {
         content = `Blocked by Argus policy: ${result.reason}`;
+      } else if (result.status === 'pending') {
+        // The orchestrator does not block on human approval — it surfaces the
+        // pending state to the model so the agent can decide what to do
+        // (retry later, narrate to the user, fall back). Callers who want
+        // synchronous waiting should use `runTool` directly with `approval.wait`.
+        content = `Awaiting human approval (pending_action_id=${result.pendingActionId}). ${result.reason}`;
       } else if (result.status === 'error') {
         content = result.error instanceof Error ? result.error.message : String(result.error);
       } else {
