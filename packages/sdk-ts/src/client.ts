@@ -4,6 +4,7 @@ import type {
   EvaluateActionResponse,
   Execution,
   LogEventRequest,
+  PendingAction,
 } from '@argus/schema';
 import { EventBuffer } from './event-buffer.js';
 
@@ -58,6 +59,45 @@ export class ArgusClient {
 
   async evaluateAction(body: EvaluateActionRequest): Promise<EvaluateActionResponse> {
     return this.request<EvaluateActionResponse>('POST', '/actions/evaluate', body);
+  }
+
+  /**
+   * Read a pending action.
+   *
+   * Pass `waitMs` (≤ 30000) to long-poll: the call holds the connection until
+   * the row is resolved or the budget elapses. Otherwise it's a single-shot
+   * read. The HTTP retry loop is bypassed for long polls so timeouts don't
+   * snowball.
+   */
+  async getPendingAction(
+    id: string,
+    options: { waitMs?: number } = {},
+  ): Promise<PendingAction> {
+    const waitMs = options.waitMs ?? 0;
+    if (waitMs > 0) {
+      // Long polls bypass the retry/backoff loop — the wait *is* the budget.
+      return this.requestNoRetry<PendingAction>('GET', `/pending_actions/${id}?wait_ms=${waitMs}`);
+    }
+    return this.request<PendingAction>('GET', `/pending_actions/${id}`);
+  }
+
+  /** Single-attempt request, no retry/backoff. Used for long-poll endpoints. */
+  private async requestNoRetry<T>(method: string, path: string, body?: unknown): Promise<T> {
+    const url = `${this.baseUrl}${path}`;
+    const res = await this.fetchImpl(url, {
+      method,
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${this.apiKey}`,
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`Argus ${method} ${path}: ${res.status} ${text}`);
+    }
+    if (res.status === 204 || res.status === 202) return undefined as T;
+    return (await res.json()) as T;
   }
 
   private async sendEventBatch(batch: LogEventRequest[]): Promise<void> {
