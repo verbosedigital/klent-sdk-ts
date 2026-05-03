@@ -32,7 +32,7 @@ function makeOpenAIStub(responses: Array<{ choices: ScriptedChoice[] }>) {
   return { client, create, snapshots };
 }
 
-function makeVelorStub(decisions: EvaluateActionResponse[] = []) {
+function makeKlentStub(decisions: EvaluateActionResponse[] = []) {
   const events: LogEventRequest[] = [];
   let idx = 0;
   const execution: Execution = {
@@ -74,7 +74,7 @@ describe('runOpenAIAgent', () => {
         ],
       },
     ]);
-    const { client: klent } = makeVelorStub();
+    const { client: klent } = makeKlentStub();
 
     const result = await runOpenAIAgent({
       client: openai,
@@ -122,7 +122,7 @@ describe('runOpenAIAgent', () => {
         ],
       },
     ]);
-    const { client: klent, events } = makeVelorStub([
+    const { client: klent, events } = makeKlentStub([
       {
         decision: 'allow',
         matched_policy_id: null,
@@ -193,7 +193,7 @@ describe('runOpenAIAgent', () => {
         ],
       },
     ]);
-    const { client: klent } = makeVelorStub([
+    const { client: klent } = makeKlentStub([
       {
         decision: 'deny',
         matched_policy_id: 'pol_cap',
@@ -262,7 +262,7 @@ describe('runOpenAIAgent', () => {
         ],
       },
     ]);
-    const { client: klent } = makeVelorStub([]);
+    const { client: klent } = makeKlentStub([]);
 
     const result = await runOpenAIAgent({
       client: openai,

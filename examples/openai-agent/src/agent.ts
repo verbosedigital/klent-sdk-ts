@@ -51,11 +51,11 @@ const tools: KlentOpenAITool[] = [
 ];
 
 async function main() {
-  const velorKey = requireEnv('KLENT_API_KEY');
+  const klentKey = requireEnv('KLENT_API_KEY');
   const openaiKey = requireEnv('OPENAI_API_KEY');
 
   const klent = new KlentClient({
-    apiKey: velorKey,
+    apiKey: klentKey,
     baseUrl: process.env.KLENT_BASE_URL ?? 'http://localhost:3001/v1',
   });
   const openai = new OpenAI({ apiKey: openaiKey });
