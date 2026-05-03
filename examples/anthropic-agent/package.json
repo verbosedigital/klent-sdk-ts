@@ -1,5 +1,5 @@
 {
-  "name": "@argus-example/anthropic-agent",
+  "name": "@klent-example/anthropic-agent",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,11 +10,11 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
-    "@argus/sdk": "workspace:*"
+    "@klent/sdk": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "@argus/tsconfig": "workspace:*",
+    "@klent/tsconfig": "workspace:*",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
   }

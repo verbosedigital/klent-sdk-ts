@@ -1,10 +1,10 @@
-import type { ArgusClient } from './client.js';
+import type { KlentClient } from './client.js';
 
 export type RunToolArgs<T> = {
   execution_id: string;
   tool: string;
   input: Record<string, unknown>;
-  /** Called only if Argus's policy engine allows (or modifies) the action. */
+  /** Called only if Klent's policy engine allows (or modifies) the action. */
   execute: (input: Record<string, unknown>) => Promise<T> | T;
   /**
    * For `steer`: called instead of `execute` when the engine redirects to a
@@ -56,7 +56,7 @@ export type RunToolResult<T> =
   | { status: 'error'; error: unknown };
 
 /**
- * Wrap a single tool call with the full Argus decision loop:
+ * Wrap a single tool call with the full Klent decision loop:
  *   action_requested → evaluate → (action_executed | action_blocked) → error?
  *
  * Callers get one decision back instead of writing the five-step boilerplate by
@@ -64,19 +64,19 @@ export type RunToolResult<T> =
  * already have to `execute`.
  */
 export async function runTool<T>(
-  argus: ArgusClient,
+  klent: KlentClient,
   args: RunToolArgs<T>,
 ): Promise<RunToolResult<T>> {
   const { execution_id, tool, input, execute, executeSteered, metadata, approval } = args;
 
-  argus.logEvent({
+  klent.logEvent({
     execution_id,
     type: 'action_requested',
     payload: { tool, input },
     metadata,
   });
 
-  const decision = await argus.evaluateAction({
+  const decision = await klent.evaluateAction({
     execution_id,
     tool,
     input,
@@ -99,11 +99,11 @@ export async function runTool<T>(
     if (!redirect) {
       return {
         status: 'error',
-        error: new Error('Argus returned steer decision without redirect_to'),
+        error: new Error('Klent returned steer decision without redirect_to'),
       };
     }
     return runExecution(
-      argus,
+      klent,
       { execution_id, tool: redirect.tool, input: redirect.input, metadata },
       executeSteered
         ? () => executeSteered(redirect.tool, redirect.input)
@@ -119,7 +119,7 @@ export async function runTool<T>(
     if (!pendingId) {
       return {
         status: 'error',
-        error: new Error('Argus returned approve decision without pending_action_id'),
+        error: new Error('Klent returned approve decision without pending_action_id'),
       };
     }
 
@@ -132,7 +132,7 @@ export async function runTool<T>(
       };
     }
 
-    const resolved = await waitForApproval(argus, pendingId, approval.wait);
+    const resolved = await waitForApproval(klent, pendingId, approval.wait);
     if (resolved.status === 'pending') {
       // Timed out — surface pending so caller can decide what to do.
       return {
@@ -157,7 +157,7 @@ export async function runTool<T>(
     const finalInput =
       stagedMods && stagedMods.length > 0 ? applyModifications(input, stagedMods) : input;
     return runExecution(
-      argus,
+      klent,
       { execution_id, tool, input: finalInput, metadata },
       () => execute(finalInput),
       decision.matched_policy_id,
@@ -171,7 +171,7 @@ export async function runTool<T>(
       : input;
 
   return runExecution(
-    argus,
+    klent,
     { execution_id, tool, input: effectiveInput, metadata },
     () => execute(effectiveInput),
     decision.matched_policy_id,
@@ -184,7 +184,7 @@ export async function runTool<T>(
  * allow/modify path, the steer path, and the approved-after-wait path.
  */
 async function runExecution<T>(
-  argus: ArgusClient,
+  klent: KlentClient,
   ctx: {
     execution_id: string;
     tool: string;
@@ -198,7 +198,7 @@ async function runExecution<T>(
   try {
     const output = await invoke();
     const duration_ms = Math.round(performance.now() - start);
-    argus.logEvent({
+    klent.logEvent({
       execution_id: ctx.execution_id,
       type: 'action_executed',
       payload: { tool: ctx.tool, output },
@@ -208,7 +208,7 @@ async function runExecution<T>(
     return { status: 'allowed', output, matchedPolicyId };
   } catch (err) {
     const duration_ms = Math.round(performance.now() - start);
-    argus.logEvent({
+    klent.logEvent({
       execution_id: ctx.execution_id,
       type: 'error',
       payload: {
@@ -228,7 +228,7 @@ type ApprovalOutcome =
   | { status: 'rejected' | 'expired'; note: string | null };
 
 async function waitForApproval(
-  argus: ArgusClient,
+  klent: KlentClient,
   pendingId: string,
   cfg: { timeoutMs: number; pollMs?: number; useLongPoll?: boolean },
 ): Promise<ApprovalOutcome> {
@@ -240,7 +240,7 @@ async function waitForApproval(
     const remaining = deadline - Date.now();
     // Server caps wait_ms at 30s — split a longer budget into chunks.
     const waitMs = useLongPoll ? Math.min(remaining, 30_000) : 0;
-    const row = await argus.getPendingAction(pendingId, { waitMs });
+    const row = await klent.getPendingAction(pendingId, { waitMs });
 
     if (row.status === 'approved') {
       return { status: 'approved', modifications: row.modifications };

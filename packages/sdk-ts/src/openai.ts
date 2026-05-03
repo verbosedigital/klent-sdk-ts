@@ -1,8 +1,8 @@
 import type OpenAI from 'openai';
-import type { ArgusClient } from './client.js';
+import type { KlentClient } from './client.js';
 import { runTool } from './run-tool.js';
 
-export interface ArgusOpenAITool<TInput = Record<string, unknown>, TOutput = unknown> {
+export interface KlentOpenAITool<TInput = Record<string, unknown>, TOutput = unknown> {
   name: string;
   description: string;
   /** JSON Schema describing the function arguments. */
@@ -12,11 +12,11 @@ export interface ArgusOpenAITool<TInput = Record<string, unknown>, TOutput = unk
 
 export interface RunOpenAIAgentOptions {
   client: OpenAI;
-  argus: ArgusClient;
+  klent: KlentClient;
   agentId: string;
   model: string;
   messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[];
-  tools: ArgusOpenAITool[];
+  tools: KlentOpenAITool[];
   maxTurns?: number;
   metadata?: Record<string, unknown>;
 }
@@ -30,19 +30,19 @@ export interface RunOpenAIAgentResult {
 }
 
 /**
- * Full-loop orchestrator for OpenAI tool-use agents with Argus in the path.
+ * Full-loop orchestrator for OpenAI tool-use agents with Klent in the path.
  *
  * Uses chat.completions. For each turn:
  *  1. Calls `chat.completions.create` and logs a `decision` event.
- *  2. For each `tool_calls[]` entry, calls `argus.runTool` (request → evaluate
+ *  2. For each `tool_calls[]` entry, calls `klent.runTool` (request → evaluate
  *     → execute-or-block → log). Denials become `role: 'tool'` messages with
  *     the policy reason so the model can adjust its plan.
  *  3. Stops when the model returns without tool calls.
  */
 export async function runOpenAIAgent(opts: RunOpenAIAgentOptions): Promise<RunOpenAIAgentResult> {
-  const { client, argus, agentId, model, tools, maxTurns = 8, metadata } = opts;
+  const { client, klent, agentId, model, tools, maxTurns = 8, metadata } = opts;
 
-  const execution = await argus.startExecution({
+  const execution = await klent.startExecution({
     agent_id: agentId,
     metadata: { ...metadata, model, tool_count: tools.length },
   });
@@ -81,7 +81,7 @@ export async function runOpenAIAgent(opts: RunOpenAIAgentOptions): Promise<RunOp
     const assistantMessage = choice.message;
     const text = assistantMessage.content ?? '';
 
-    argus.logEvent({
+    klent.logEvent({
       execution_id: execution.id,
       type: 'decision',
       payload: {
@@ -126,7 +126,7 @@ export async function runOpenAIAgent(opts: RunOpenAIAgentOptions): Promise<RunOp
         continue;
       }
 
-      const result = await runTool(argus, {
+      const result = await runTool(klent, {
         execution_id: execution.id,
         tool: call.function.name,
         input,
@@ -136,7 +136,7 @@ export async function runOpenAIAgent(opts: RunOpenAIAgentOptions): Promise<RunOp
 
       let content: string;
       if (result.status === 'denied') {
-        content = `Blocked by Argus policy: ${result.reason}`;
+        content = `Blocked by Klent policy: ${result.reason}`;
       } else if (result.status === 'pending') {
         // The orchestrator does not block on human approval — it surfaces the
         // pending state to the model so the agent can decide what to do
@@ -157,7 +157,7 @@ export async function runOpenAIAgent(opts: RunOpenAIAgentOptions): Promise<RunOp
     }
   }
 
-  await argus.flush();
+  await klent.flush();
 
   return {
     executionId: execution.id,

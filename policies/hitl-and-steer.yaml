@@ -1,7 +1,7 @@
 # Sample pack demonstrating Phase-2 effects: approve (HITL) and steer (redirect).
 #
 # Apply with:
-#   pnpm --filter @argus/api policies:apply <project_id> policies/hitl-and-steer.yaml
+#   pnpm --filter @klent/api policies:apply <project_id> policies/hitl-and-steer.yaml
 
 policies:
   # Human-in-the-loop: pause production database writes until a human approves

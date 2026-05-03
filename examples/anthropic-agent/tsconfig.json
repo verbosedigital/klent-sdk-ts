@@ -1,5 +1,5 @@
 {
-  "extends": "@argus/tsconfig/node.json",
+  "extends": "@klent/tsconfig/node.json",
   "compilerOptions": {
     "rootDir": "src",
     "noEmit": true

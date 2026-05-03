@@ -4,8 +4,8 @@ import type {
   EvaluateActionResponse,
   LogEventRequest,
   PendingAction,
-} from '@argus/schema';
-import type { ArgusClient } from './client.js';
+} from '@klent/schema';
+import type { KlentClient } from './client.js';
 import { runTool } from './run-tool.js';
 
 function makeFakeClient(decision: EvaluateActionResponse) {
@@ -20,7 +20,7 @@ function makeFakeClient(decision: EvaluateActionResponse) {
       evaluations.push(body);
       return decision;
     }),
-  } as unknown as ArgusClient;
+  } as unknown as KlentClient;
 
   return { client, events, evaluations };
 }
@@ -47,7 +47,7 @@ function makeFakePollingClient(decision: EvaluateActionResponse, pollResponses: 
       if (!next) throw new Error('no scripted poll response');
       return next;
     }),
-  } as unknown as ArgusClient;
+  } as unknown as KlentClient;
 
   return { client, events, evaluations, polls };
 }

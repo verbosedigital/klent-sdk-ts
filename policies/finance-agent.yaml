@@ -43,7 +43,7 @@ policies:
         value: send_email
     modifications:
       - field: input.cc
-        value: audit@argus.dev
+        value: audit@klent.dev
 
   # Refuse any tool whose name contains "delete" or "drop" against finance
   # ledgers. Defensive — agents should never destroy ledger rows.
