@@ -31,7 +31,7 @@ function makeAnthropicStub(responses: ScriptedResponse[]) {
   return { client, create, snapshots };
 }
 
-function makeVelorStub(decisions: EvaluateActionResponse[]) {
+function makeKlentStub(decisions: EvaluateActionResponse[]) {
   const events: LogEventRequest[] = [];
   let decisionIdx = 0;
   const execution: Execution = {
@@ -71,7 +71,7 @@ describe('runAnthropicAgent', () => {
         content: [{ type: 'text', text: 'Hello there' }],
       },
     ]);
-    const { client: klent, events } = makeVelorStub([]);
+    const { client: klent, events } = makeKlentStub([]);
 
     const result = await runAnthropicAgent({
       client: anthropic,
@@ -107,7 +107,7 @@ describe('runAnthropicAgent', () => {
         content: [{ type: 'text', text: "It's sunny in Lisbon." }],
       },
     ]);
-    const { client: klent, events } = makeVelorStub([
+    const { client: klent, events } = makeKlentStub([
       {
         decision: 'allow',
         matched_policy_id: null,
@@ -162,7 +162,7 @@ describe('runAnthropicAgent', () => {
         content: [{ type: 'text', text: "I can't — that's too much." }],
       },
     ]);
-    const { client: klent } = makeVelorStub([
+    const { client: klent } = makeKlentStub([
       {
         decision: 'deny',
         matched_policy_id: 'pol_limit',
@@ -231,7 +231,7 @@ describe('runAnthropicAgent', () => {
         content: [{ type: 'text', text: 'done' }],
       },
     ]);
-    const { client: klent } = makeVelorStub([]);
+    const { client: klent } = makeKlentStub([]);
 
     await runAnthropicAgent({
       client: anthropic,
@@ -267,7 +267,7 @@ describe('runAnthropicAgent', () => {
       ],
     }));
     const { client: anthropic, create } = makeAnthropicStub(neverEndingResponses);
-    const { client: klent } = makeVelorStub([]);
+    const { client: klent } = makeKlentStub([]);
 
     const result = await runAnthropicAgent({
       client: anthropic,
