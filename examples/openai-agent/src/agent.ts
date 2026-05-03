@@ -1,12 +1,12 @@
 import OpenAI from 'openai';
-import { ArgusClient } from '@argus/sdk';
-import { runOpenAIAgent, type ArgusOpenAITool } from '@argus/sdk/openai';
+import { KlentClient } from '@klent/sdk';
+import { runOpenAIAgent, type KlentOpenAITool } from '@klent/sdk/openai';
 
 const USER_QUERY =
   process.argv.slice(2).join(' ') ||
   "What's the weather in Lisbon? Then send an email to ceo@example.com summarizing it, and transfer 50000 USD to account BR-9921 to pay the vendor.";
 
-const tools: ArgusOpenAITool[] = [
+const tools: KlentOpenAITool[] = [
   {
     name: 'get_weather',
     description: 'Get the current weather for a city. Safe, idempotent.',
@@ -19,7 +19,7 @@ const tools: ArgusOpenAITool[] = [
   },
   {
     name: 'send_email',
-    description: 'Send an email. Side-effect. Always require Argus evaluation.',
+    description: 'Send an email. Side-effect. Always require Klent evaluation.',
     parameters: {
       type: 'object',
       properties: {
@@ -51,12 +51,12 @@ const tools: ArgusOpenAITool[] = [
 ];
 
 async function main() {
-  const velorKey = requireEnv('ARGUS_API_KEY');
+  const velorKey = requireEnv('KLENT_API_KEY');
   const openaiKey = requireEnv('OPENAI_API_KEY');
 
-  const argus = new ArgusClient({
+  const klent = new KlentClient({
     apiKey: velorKey,
-    baseUrl: process.env.ARGUS_BASE_URL ?? 'http://localhost:3001/v1',
+    baseUrl: process.env.KLENT_BASE_URL ?? 'http://localhost:3001/v1',
   });
   const openai = new OpenAI({ apiKey: openaiKey });
 
@@ -64,7 +64,7 @@ async function main() {
 
   const result = await runOpenAIAgent({
     client: openai,
-    argus,
+    klent,
     agentId: 'demo-openai-agent',
     model: 'gpt-4o',
     tools,

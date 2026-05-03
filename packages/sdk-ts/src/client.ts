@@ -5,10 +5,10 @@ import type {
   Execution,
   LogEventRequest,
   PendingAction,
-} from '@argus/schema';
+} from '@klent/schema';
 import { EventBuffer } from './event-buffer.js';
 
-export interface ArgusClientOptions {
+export interface KlentClientOptions {
   apiKey: string;
   baseUrl?: string;
   fetch?: typeof fetch;
@@ -20,18 +20,18 @@ export interface ArgusClientOptions {
   maxRetries?: number;
 }
 
-const DEFAULT_BASE_URL = 'https://api.argus.dev/v1';
+const DEFAULT_BASE_URL = 'https://api.klent.dev/v1';
 
-export class ArgusClient {
+export class KlentClient {
   private readonly apiKey: string;
   private readonly baseUrl: string;
   private readonly fetchImpl: typeof fetch;
   private readonly maxRetries: number;
   private readonly eventBuffer: EventBuffer;
 
-  constructor(options: ArgusClientOptions) {
+  constructor(options: KlentClientOptions) {
     if (!options.apiKey) {
-      throw new Error('ArgusClient: apiKey is required');
+      throw new Error('KlentClient: apiKey is required');
     }
     this.apiKey = options.apiKey;
     this.baseUrl = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '');
@@ -91,7 +91,7 @@ export class ArgusClient {
     });
     if (!res.ok) {
       const text = await res.text().catch(() => '');
-      throw new Error(`Argus ${method} ${path}: ${res.status} ${text}`);
+      throw new Error(`Klent ${method} ${path}: ${res.status} ${text}`);
     }
     if (res.status === 204 || res.status === 202) return undefined as T;
     return (await res.json()) as T;
@@ -125,10 +125,10 @@ export class ArgusClient {
         }
 
         if (res.status >= 500 || res.status === 429) {
-          lastErr = new Error(`Argus ${method} ${path}: ${res.status}`);
+          lastErr = new Error(`Klent ${method} ${path}: ${res.status}`);
         } else {
           const text = await res.text().catch(() => '');
-          throw new Error(`Argus ${method} ${path}: ${res.status} ${text}`);
+          throw new Error(`Klent ${method} ${path}: ${res.status} ${text}`);
         }
       } catch (err) {
         lastErr = err;
@@ -139,7 +139,7 @@ export class ArgusClient {
       await sleep(backoffMs(attempt));
     }
 
-    throw lastErr ?? new Error(`Argus ${method} ${path} failed`);
+    throw lastErr ?? new Error(`Klent ${method} ${path} failed`);
   }
 }
 

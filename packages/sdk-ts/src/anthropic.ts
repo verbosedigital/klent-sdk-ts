@@ -1,8 +1,8 @@
 import type Anthropic from '@anthropic-ai/sdk';
-import type { ArgusClient } from './client.js';
+import type { KlentClient } from './client.js';
 import { runTool } from './run-tool.js';
 
-export interface ArgusTool<TInput = Record<string, unknown>, TOutput = unknown> {
+export interface KlentTool<TInput = Record<string, unknown>, TOutput = unknown> {
   name: string;
   description: string;
   input_schema: Anthropic.Tool.InputSchema;
@@ -11,11 +11,11 @@ export interface ArgusTool<TInput = Record<string, unknown>, TOutput = unknown> 
 
 export interface RunAnthropicAgentOptions {
   client: Anthropic;
-  argus: ArgusClient;
+  klent: KlentClient;
   agentId: string;
   model: string;
   messages: Anthropic.MessageParam[];
-  tools: ArgusTool[];
+  tools: KlentTool[];
   maxTurns?: number;
   maxTokens?: number;
   system?: string;
@@ -31,23 +31,23 @@ export interface RunAnthropicAgentResult {
 }
 
 /**
- * Full-loop orchestrator for Anthropic tool-use agents with Argus in the path.
+ * Full-loop orchestrator for Anthropic tool-use agents with Klent in the path.
  *
  * For each turn:
  *  1. Calls `messages.create` and logs the reasoning step as a `decision` event.
- *  2. For each `tool_use` block, calls `argus.runTool` — which requests,
+ *  2. For each `tool_use` block, calls `klent.runTool` — which requests,
  *     evaluates, executes (or blocks), and logs the outcome.
  *  3. Feeds the tool results back as the next user message.
  *
  * Stops when the model returns `stop_reason === 'end_turn'` (or the turn cap
- * is hit). All timeline events land on a single Argus execution.
+ * is hit). All timeline events land on a single Klent execution.
  */
 export async function runAnthropicAgent(
   opts: RunAnthropicAgentOptions,
 ): Promise<RunAnthropicAgentResult> {
   const {
     client,
-    argus,
+    klent,
     agentId,
     model,
     tools,
@@ -57,7 +57,7 @@ export async function runAnthropicAgent(
     metadata,
   } = opts;
 
-  const execution = await argus.startExecution({
+  const execution = await klent.startExecution({
     agent_id: agentId,
     metadata: { ...metadata, model, tool_count: tools.length },
   });
@@ -91,7 +91,7 @@ export async function runAnthropicAgent(
     stopReason = response.stop_reason;
     const text = extractText(response.content);
 
-    argus.logEvent({
+    klent.logEvent({
       execution_id: execution.id,
       type: 'decision',
       payload: {
@@ -127,7 +127,7 @@ export async function runAnthropicAgent(
       }
 
       const input = block.input as Record<string, unknown>;
-      const result = await runTool(argus, {
+      const result = await runTool(klent, {
         execution_id: execution.id,
         tool: block.name,
         input,
@@ -140,7 +140,7 @@ export async function runAnthropicAgent(
           type: 'tool_result',
           tool_use_id: block.id,
           is_error: true,
-          content: `Blocked by Argus policy: ${result.reason}`,
+          content: `Blocked by Klent policy: ${result.reason}`,
         });
       } else if (result.status === 'pending') {
         // Surface pending state to the model rather than blocking the loop.
@@ -171,7 +171,7 @@ export async function runAnthropicAgent(
     messages.push({ role: 'user', content: toolResults });
   }
 
-  await argus.flush();
+  await klent.flush();
 
   return {
     executionId: execution.id,

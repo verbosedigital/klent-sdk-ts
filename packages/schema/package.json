@@ -1,21 +1,21 @@
 {
-  "name": "@argus/schema",
+  "name": "@klent/schema",
   "version": "0.0.1",
   "license": "UNLICENSED",
-  "description": "Zod schemas and TypeScript types for the Argus API — shared between the SDK and server.",
+  "description": "Zod schemas and TypeScript types for the Klent API — shared between the SDK and server.",
   "keywords": [
-    "argus",
+    "klent",
     "zod",
     "schema",
     "types"
   ],
-  "homepage": "https://argus.dev",
+  "homepage": "https://klent.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/argus/argus.git",
+    "url": "git+https://github.com/klent/klent.git",
     "directory": "packages/schema"
   },
-  "author": "Argus",
+  "author": "Klent",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -45,7 +45,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@argus/tsconfig": "workspace:*",
+    "@klent/tsconfig": "workspace:*",
     "typescript": "^5.6.3"
   }
 }
