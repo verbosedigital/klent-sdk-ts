@@ -31,12 +31,27 @@ jobs:
       - name: Build @klent/schema + @klent/sdk
         run: pnpm turbo run build --filter=@klent/schema --filter=@klent/sdk
 
+      # Pre-release versions (e.g. 0.0.1-alpha.0, 0.1.0-rc.1) publish under
+      # the `next` dist-tag so they don't become the default for
+      # `npm install @klent/sdk`. Stable versions (0.0.1, 0.1.0) get `latest`.
+      - name: Determine npm dist-tag
+        id: dist_tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#sdk-ts-v}"
+          if [[ "$VERSION" == *-* ]]; then
+            echo "tag=next" >> "$GITHUB_OUTPUT"
+            echo "Publishing $VERSION as pre-release (dist-tag: next)"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+            echo "Publishing $VERSION as stable (dist-tag: latest)"
+          fi
+
       - name: Publish @klent/schema
-        run: pnpm --filter @klent/schema publish --access public --no-git-checks
+        run: pnpm --filter @klent/schema publish --access public --no-git-checks --tag ${{ steps.dist_tag.outputs.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @klent/sdk
-        run: pnpm --filter @klent/sdk publish --access public --no-git-checks
+        run: pnpm --filter @klent/sdk publish --access public --no-git-checks --tag ${{ steps.dist_tag.outputs.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
