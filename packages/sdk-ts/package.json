@@ -1,6 +1,6 @@
 {
   "name": "@klent/sdk",
-  "version": "0.0.1",
+  "version": "0.0.1-alpha.0",
   "license": "UNLICENSED",
   "description": "Klent TypeScript SDK — control layer for AI agents",
   "keywords": [
