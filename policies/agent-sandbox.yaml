@@ -29,6 +29,23 @@ policies:
         operator: equals
         value: get_time
 
+  # ---- Agent-loop guard ----
+
+  # Cut the cord if the agent retries the same tool 10 times in a row in a
+  # single execution. Most "agent stuck in a loop" failures look like this:
+  # one tool call, same args, repeated until tokens run out. A different
+  # tool in between resets the streak — `loop_guard` is consecutive-only.
+  - name: sandbox / cap knowledge_lookup retries
+    description: Block a runaway agent that keeps re-querying knowledge_lookup.
+    enforcement_mode: enforce
+    effect: deny
+    conditions:
+      - field: tool
+        operator: equals
+        value: knowledge_lookup
+    loop_guard:
+      threshold: 10
+
   # ---- Shadow surveillance ----
 
   # Watch for outbound email attempts. Don't block (yet) — record so we can

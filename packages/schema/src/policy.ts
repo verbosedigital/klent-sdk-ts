@@ -81,6 +81,29 @@ export const policyRateLimitSchema = z.object({
 export type PolicyRateLimit = z.infer<typeof policyRateLimitSchema>;
 
 /**
+ * Loop-guard clause. When set, the policy's `effect` fires once the agent
+ * has called this same tool `threshold` times in a row within the current
+ * execution — i.e. the last `threshold - 1` `action_executed` events for
+ * this execution all targeted the same tool, and this incoming action would
+ * be the next one.
+ *
+ * Use case: the classic "agent stuck in a loop" failure. The agent retries
+ * `web_search` 50 times when the first response wasn't what it wanted; you
+ * want to cut the cord at, say, 10 consecutive calls.
+ *
+ * Scope is per-execution (which is also per-agent — one execution = one
+ * agent run). A different tool in between resets the streak.
+ *
+ * This clause is mutually exclusive with `rate_limit` on the same policy
+ * (both are historical-event pre-filters with different semantics — pick
+ * one per policy).
+ */
+export const policyLoopGuardSchema = z.object({
+  threshold: z.number().int().min(2).max(100),
+});
+export type PolicyLoopGuard = z.infer<typeof policyLoopGuardSchema>;
+
+/**
  * Base policy create body. Kept as a plain ZodObject (no `.refine()`) so
  * downstream callers can still use `.pick()` / `.extend()`. Cross-field
  * validation lives in {@link policyEffectShapeRefinements} below — apply it
@@ -97,6 +120,7 @@ export const createPolicyRequestSchema = z.object({
   modifications: z.array(policyModificationSchema).optional(),
   redirect_to: policyRedirectSchema.optional(),
   rate_limit: policyRateLimitSchema.optional(),
+  loop_guard: policyLoopGuardSchema.optional(),
   /**
    * For `effect: 'approve'`: how many distinct human approvals are required
    * before the action is released. Default 1 (single-approver, current
@@ -120,6 +144,8 @@ export const policyEffectShapeRefinements = (
     effect: PolicyEffect;
     modifications?: PolicyModification[] | null;
     redirect_to?: PolicyRedirect | null;
+    rate_limit?: PolicyRateLimit | null;
+    loop_guard?: PolicyLoopGuard | null;
     required_approvals?: number | null;
   },
   ctx: z.RefinementCtx,
@@ -153,6 +179,17 @@ export const policyEffectShapeRefinements = (
       path: ['required_approvals'],
     });
   }
+  // rate_limit and loop_guard are both historical-event pre-filters but with
+  // different scopes (project rolling window vs. per-execution streak).
+  // Allowing both on one policy makes "fire when?" ambiguous. Force authors
+  // to split into two policies.
+  if (value.rate_limit && value.loop_guard) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'rate_limit and loop_guard cannot both be set on the same policy',
+      path: ['loop_guard'],
+    });
+  }
 };
 
 /** Every field optional — omitted fields stay unchanged server-side. */
@@ -167,6 +204,7 @@ export const updatePolicyRequestSchema = z
     modifications: z.array(policyModificationSchema).nullable().optional(),
     redirect_to: policyRedirectSchema.nullable().optional(),
     rate_limit: policyRateLimitSchema.nullable().optional(),
+    loop_guard: policyLoopGuardSchema.nullable().optional(),
     required_approvals: z.number().int().min(1).max(10).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'at least one field required' });
@@ -184,6 +222,7 @@ export const policySchema = z.object({
   modifications: z.array(policyModificationSchema).nullable(),
   redirect_to: policyRedirectSchema.nullable(),
   rate_limit: policyRateLimitSchema.nullable(),
+  loop_guard: policyLoopGuardSchema.nullable(),
   required_approvals: z.number().int().min(1).max(10),
   created_at: timestampSchema,
   updated_at: timestampSchema,
