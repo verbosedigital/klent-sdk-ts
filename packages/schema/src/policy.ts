@@ -57,6 +57,30 @@ export const policyRedirectSchema = z.object({
 export type PolicyRedirect = z.infer<typeof policyRedirectSchema>;
 
 /**
+ * Rate-limit clause attached to a policy. When set, the policy's `effect`
+ * fires once the configured count of prior `action_executed` events in the
+ * rolling window has been reached.
+ *
+ * - `scope: 'tool'`        — limit shared across all agents in the project.
+ *   "transfer_funds is capped at 100/hr project-wide."
+ * - `scope: 'agent_tool'`  — limit per (agent_id, tool) pair, the more
+ *   common case. "Each agent can call transfer_funds 5 times per hour."
+ *
+ * `window_minutes` is a sliding window: at evaluation time we count the
+ * action_executed events whose `occurred_at` is within the last N minutes.
+ */
+export const policyRateLimitSchema = z.object({
+  scope: z.enum(['tool', 'agent_tool']),
+  limit: z.number().int().positive(),
+  window_minutes: z
+    .number()
+    .int()
+    .positive()
+    .max(7 * 24 * 60),
+});
+export type PolicyRateLimit = z.infer<typeof policyRateLimitSchema>;
+
+/**
  * Base policy create body. Kept as a plain ZodObject (no `.refine()`) so
  * downstream callers can still use `.pick()` / `.extend()`. Cross-field
  * validation lives in {@link policyEffectShapeRefinements} below — apply it
@@ -72,6 +96,7 @@ export const createPolicyRequestSchema = z.object({
   effect: policyEffectSchema,
   modifications: z.array(policyModificationSchema).optional(),
   redirect_to: policyRedirectSchema.optional(),
+  rate_limit: policyRateLimitSchema.optional(),
 });
 export type CreatePolicyRequest = z.infer<typeof createPolicyRequestSchema>;
 
@@ -118,6 +143,7 @@ export const updatePolicyRequestSchema = z
     effect: policyEffectSchema.optional(),
     modifications: z.array(policyModificationSchema).nullable().optional(),
     redirect_to: policyRedirectSchema.nullable().optional(),
+    rate_limit: policyRateLimitSchema.nullable().optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'at least one field required' });
 export type UpdatePolicyRequest = z.infer<typeof updatePolicyRequestSchema>;
@@ -133,6 +159,7 @@ export const policySchema = z.object({
   effect: policyEffectSchema,
   modifications: z.array(policyModificationSchema).nullable(),
   redirect_to: policyRedirectSchema.nullable(),
+  rate_limit: policyRateLimitSchema.nullable(),
   created_at: timestampSchema,
   updated_at: timestampSchema,
 });

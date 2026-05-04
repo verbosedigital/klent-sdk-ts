@@ -73,6 +73,7 @@ export async function runTool<T>(
     execution_id,
     type: 'action_requested',
     payload: { tool, input },
+    tool,
     metadata,
   });
 
@@ -203,6 +204,7 @@ async function runExecution<T>(
       type: 'action_executed',
       payload: { tool: ctx.tool, output },
       duration_ms,
+      tool: ctx.tool,
       metadata: ctx.metadata,
     });
     return { status: 'allowed', output, matchedPolicyId };
@@ -216,6 +218,7 @@ async function runExecution<T>(
         message: err instanceof Error ? err.message : String(err),
       },
       duration_ms,
+      tool: ctx.tool,
       metadata: ctx.metadata,
     });
     return { status: 'error', error: err };

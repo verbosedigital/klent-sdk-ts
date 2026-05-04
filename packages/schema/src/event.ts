@@ -29,6 +29,8 @@ export const logEventRequestSchema = z.object({
   input_tokens: z.number().int().nonnegative().optional(),
   /** Output/completion tokens produced by the LLM call this event represents. */
   output_tokens: z.number().int().nonnegative().optional(),
+  /** Tool name the action targets — set on action events for indexed lookup. */
+  tool: z.string().min(1).max(200).optional(),
   occurred_at: timestampSchema.optional(),
 });
 export type LogEventRequest = z.infer<typeof logEventRequestSchema>;
@@ -44,6 +46,7 @@ export const eventSchema = z.object({
   model: z.string().nullable(),
   input_tokens: z.number().int().nonnegative().nullable(),
   output_tokens: z.number().int().nonnegative().nullable(),
+  tool: z.string().nullable(),
   occurred_at: timestampSchema,
   received_at: timestampSchema,
 });

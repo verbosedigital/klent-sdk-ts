@@ -57,3 +57,20 @@ policies:
       - field: input.resource
         operator: ends_with
         value: ledger
+
+  # Cap each agent at 5 transfers per hour. Goes beyond conditions because
+  # the engine alone can't see history — the API counts past
+  # `action_executed` events for this (agent, tool) pair in the rolling
+  # window. Triggered when count >= limit; effect runs (deny here).
+  - name: finance / transfer-burst-cap
+    description: Each agent can call transfer_funds at most 5 times per hour.
+    enforcement_mode: enforce
+    effect: deny
+    conditions:
+      - field: tool
+        operator: equals
+        value: transfer_funds
+    rate_limit:
+      scope: agent_tool
+      limit: 5
+      window_minutes: 60
