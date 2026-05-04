@@ -23,6 +23,12 @@ export const logEventRequestSchema = z.object({
   metadata: metadataSchema.optional(),
   /** Wall-clock duration of the work this event represents, in milliseconds. */
   duration_ms: z.number().int().nonnegative().optional(),
+  /** LLM model used for this event (e.g. `claude-sonnet-4-6`, `gpt-4o`). */
+  model: z.string().min(1).max(200).optional(),
+  /** Input/prompt tokens consumed by the LLM call this event represents. */
+  input_tokens: z.number().int().nonnegative().optional(),
+  /** Output/completion tokens produced by the LLM call this event represents. */
+  output_tokens: z.number().int().nonnegative().optional(),
   occurred_at: timestampSchema.optional(),
 });
 export type LogEventRequest = z.infer<typeof logEventRequestSchema>;
@@ -35,6 +41,9 @@ export const eventSchema = z.object({
   payload: z.record(z.string(), z.unknown()),
   metadata: metadataSchema,
   duration_ms: z.number().int().nonnegative().nullable(),
+  model: z.string().nullable(),
+  input_tokens: z.number().int().nonnegative().nullable(),
+  output_tokens: z.number().int().nonnegative().nullable(),
   occurred_at: timestampSchema,
   received_at: timestampSchema,
 });

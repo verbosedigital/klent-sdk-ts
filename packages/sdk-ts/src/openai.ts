@@ -90,6 +90,9 @@ export async function runOpenAIAgent(opts: RunOpenAIAgentOptions): Promise<RunOp
         text: text || undefined,
       },
       duration_ms: llmDurationMs,
+      model,
+      input_tokens: response.usage?.prompt_tokens,
+      output_tokens: response.usage?.completion_tokens,
       metadata,
     });
 

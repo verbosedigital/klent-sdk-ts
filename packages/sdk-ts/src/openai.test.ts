@@ -16,7 +16,12 @@ type ScriptedChoice = {
   };
 };
 
-function makeOpenAIStub(responses: Array<{ choices: ScriptedChoice[] }>) {
+function makeOpenAIStub(
+  responses: Array<{
+    choices: ScriptedChoice[];
+    usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+  }>,
+) {
   let turn = 0;
   const snapshots: Array<{ messages: unknown[] }> = [];
   const create = vi.fn(async (args: { messages: unknown[] }) => {
@@ -287,5 +292,34 @@ describe('runOpenAIAgent', () => {
     const lastMessage = secondCallArgs.messages[secondCallArgs.messages.length - 1]!;
     expect(lastMessage.role).toBe('tool');
     expect(lastMessage.content).toContain('Invalid JSON');
+  });
+
+  it('records token usage and model on the decision event', async () => {
+    const { client: openai } = makeOpenAIStub([
+      {
+        choices: [
+          {
+            finish_reason: 'stop',
+            message: { role: 'assistant', content: 'ok' },
+          },
+        ],
+        usage: { prompt_tokens: 200, completion_tokens: 50, total_tokens: 250 },
+      },
+    ]);
+    const { client: klent, events } = makeKlentStub();
+
+    await runOpenAIAgent({
+      client: openai,
+      klent,
+      agentId: 'test',
+      model: 'gpt-4o-mini',
+      tools: [],
+      messages: [{ role: 'user', content: 'hi' }],
+    });
+
+    const decision = events.find((e) => e.type === 'decision');
+    expect(decision?.model).toBe('gpt-4o-mini');
+    expect(decision?.input_tokens).toBe(200);
+    expect(decision?.output_tokens).toBe(50);
   });
 });

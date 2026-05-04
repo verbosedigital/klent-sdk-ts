@@ -100,6 +100,9 @@ export async function runAnthropicAgent(
         text: text || undefined,
       },
       duration_ms: llmDurationMs,
+      model,
+      input_tokens: response.usage?.input_tokens,
+      output_tokens: response.usage?.output_tokens,
       metadata,
     });
 

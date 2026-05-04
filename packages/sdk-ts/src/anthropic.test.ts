@@ -13,6 +13,7 @@ type ScriptedResponse = {
   content: Array<
     { type: 'text'; text: string } | { type: 'tool_use'; id: string; name: string; input: unknown }
   >;
+  usage?: { input_tokens: number; output_tokens: number };
 };
 
 function makeAnthropicStub(responses: ScriptedResponse[]) {
@@ -288,5 +289,54 @@ describe('runAnthropicAgent', () => {
 
     expect(create).toHaveBeenCalledTimes(3);
     expect(result.turns).toBe(3);
+  });
+
+  it('records token usage and model on the decision event', async () => {
+    const { client: anthropic } = makeAnthropicStub([
+      {
+        stop_reason: 'end_turn',
+        content: [{ type: 'text', text: 'ok' }],
+        usage: { input_tokens: 123, output_tokens: 45 },
+      },
+    ]);
+    const { client: klent, events } = makeKlentStub([]);
+
+    await runAnthropicAgent({
+      client: anthropic,
+      klent,
+      agentId: 'test',
+      model: 'claude-sonnet-4-6',
+      tools: [],
+      messages: [{ role: 'user', content: 'hi' }],
+    });
+
+    const decision = events.find((e) => e.type === 'decision');
+    expect(decision?.model).toBe('claude-sonnet-4-6');
+    expect(decision?.input_tokens).toBe(123);
+    expect(decision?.output_tokens).toBe(45);
+  });
+
+  it('omits token fields when the response has no usage', async () => {
+    const { client: anthropic } = makeAnthropicStub([
+      {
+        stop_reason: 'end_turn',
+        content: [{ type: 'text', text: 'ok' }],
+      },
+    ]);
+    const { client: klent, events } = makeKlentStub([]);
+
+    await runAnthropicAgent({
+      client: anthropic,
+      klent,
+      agentId: 'test',
+      model: 'claude-test',
+      tools: [],
+      messages: [{ role: 'user', content: 'hi' }],
+    });
+
+    const decision = events.find((e) => e.type === 'decision');
+    expect(decision?.model).toBe('claude-test');
+    expect(decision?.input_tokens).toBeUndefined();
+    expect(decision?.output_tokens).toBeUndefined();
   });
 });
