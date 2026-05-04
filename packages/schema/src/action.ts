@@ -31,6 +31,22 @@ export type EvaluateActionResponse = z.infer<typeof evaluateActionResponseSchema
 export const pendingActionStatusSchema = z.enum(['pending', 'approved', 'rejected', 'expired']);
 export type PendingActionStatus = z.infer<typeof pendingActionStatusSchema>;
 
+/**
+ * One human's vote on a pending action. Multi-step approval policies
+ * (`required_approvals > 1`) accumulate these until the quorum is reached
+ * (status flips to `approved`); a single `reject` vote terminates the action
+ * (status flips to `rejected`). Same user can never vote twice on the same
+ * pending action — enforced by a UNIQUE(pending_action_id, user_id) constraint
+ * in the DB.
+ */
+export const pendingActionApprovalSchema = z.object({
+  user_id: idSchema,
+  decision: z.enum(['approve', 'reject']),
+  note: z.string().nullable(),
+  created_at: timestampSchema,
+});
+export type PendingActionApproval = z.infer<typeof pendingActionApprovalSchema>;
+
 export const pendingActionSchema = z.object({
   id: idSchema,
   project_id: idSchema,
@@ -43,6 +59,13 @@ export const pendingActionSchema = z.object({
   matched_policy_id: idSchema.nullable(),
   reason: z.string().nullable(),
   modifications: z.array(policyModificationSchema).nullable(),
+  /**
+   * How many distinct `approve` votes this action needs before its status
+   * flips to `approved`. Single-step (legacy) policies surface as 1.
+   */
+  required_approvals: z.number().int().min(1),
+  /** Votes recorded so far, oldest first. Includes both approve and reject. */
+  approvals: z.array(pendingActionApprovalSchema),
   requested_at: timestampSchema,
   expires_at: timestampSchema.nullable(),
   resolved_at: timestampSchema.nullable(),

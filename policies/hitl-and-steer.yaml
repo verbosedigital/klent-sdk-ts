@@ -53,3 +53,20 @@ policies:
       - field: input.recipient_count
         operator: greater_than
         value: 100
+
+  # Multi-step approval: large transfers require two distinct human approvers
+  # before the SDK is allowed to execute. Any single rejection terminates
+  # the action regardless of how many approve votes had accumulated. The
+  # same user cannot approve twice (enforced server-side).
+  - name: hitl / dual-control-large-transfers
+    description: Transfers over $50k need two distinct humans to approve.
+    enforcement_mode: enforce
+    effect: approve
+    required_approvals: 2
+    conditions:
+      - field: tool
+        operator: equals
+        value: transfer_funds
+      - field: input.amount_usd
+        operator: greater_than
+        value: 50000

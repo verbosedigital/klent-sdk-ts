@@ -10,6 +10,14 @@ export const eventTypeSchema = z.enum([
   'action_steered',
   /** Engine returned `approve` — the action is parked awaiting human review. */
   'pending_approval',
+  /**
+   * One human cast a vote (approve or reject) on a pending action. For
+   * single-approver policies this fires once alongside `approval_resolved`.
+   * For multi-step policies, every partial approve vote emits a vote event;
+   * the deciding vote ALSO emits `approval_resolved` so existing consumers
+   * (alerts, audit dashboards) keep their terminal-event semantics.
+   */
+  'approval_vote',
   /** A pending action was resolved (approved or rejected) by a human. */
   'approval_resolved',
   'error',

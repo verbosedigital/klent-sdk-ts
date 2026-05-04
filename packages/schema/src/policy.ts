@@ -97,6 +97,13 @@ export const createPolicyRequestSchema = z.object({
   modifications: z.array(policyModificationSchema).optional(),
   redirect_to: policyRedirectSchema.optional(),
   rate_limit: policyRateLimitSchema.optional(),
+  /**
+   * For `effect: 'approve'`: how many distinct human approvals are required
+   * before the action is released. Default 1 (single-approver, current
+   * behavior). Any single rejection still terminates the action regardless
+   * of this number. Ignored for non-approve effects.
+   */
+  required_approvals: z.number().int().min(1).max(10).default(1),
 });
 export type CreatePolicyRequest = z.infer<typeof createPolicyRequestSchema>;
 
@@ -113,6 +120,7 @@ export const policyEffectShapeRefinements = (
     effect: PolicyEffect;
     modifications?: PolicyModification[] | null;
     redirect_to?: PolicyRedirect | null;
+    required_approvals?: number | null;
   },
   ctx: z.RefinementCtx,
 ): void => {
@@ -130,6 +138,21 @@ export const policyEffectShapeRefinements = (
       path: ['modifications'],
     });
   }
+  // required_approvals > 1 is meaningful only for approve. We don't error on
+  // misuse — just clamp behavior in the engine — but flag it at the API/YAML
+  // boundary so authors don't end up with silently ignored config.
+  if (
+    value.required_approvals !== undefined &&
+    value.required_approvals !== null &&
+    value.required_approvals > 1 &&
+    value.effect !== 'approve'
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'required_approvals > 1 only applies when effect is "approve"',
+      path: ['required_approvals'],
+    });
+  }
 };
 
 /** Every field optional — omitted fields stay unchanged server-side. */
@@ -144,6 +167,7 @@ export const updatePolicyRequestSchema = z
     modifications: z.array(policyModificationSchema).nullable().optional(),
     redirect_to: policyRedirectSchema.nullable().optional(),
     rate_limit: policyRateLimitSchema.nullable().optional(),
+    required_approvals: z.number().int().min(1).max(10).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'at least one field required' });
 export type UpdatePolicyRequest = z.infer<typeof updatePolicyRequestSchema>;
@@ -160,6 +184,7 @@ export const policySchema = z.object({
   modifications: z.array(policyModificationSchema).nullable(),
   redirect_to: policyRedirectSchema.nullable(),
   rate_limit: policyRateLimitSchema.nullable(),
+  required_approvals: z.number().int().min(1).max(10),
   created_at: timestampSchema,
   updated_at: timestampSchema,
 });
