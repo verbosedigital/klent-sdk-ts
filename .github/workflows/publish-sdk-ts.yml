@@ -60,14 +60,22 @@ jobs:
       # then `npm publish` uploads it via OIDC. No NPM_TOKEN required —
       # npm reads the OIDC id-token directly from the GitHub Actions
       # environment thanks to `permissions: id-token: write`.
+      #
+      # NOTE: `--provenance` is intentionally NOT passed because npm's
+      # provenance verification rejects builds from private GitHub repos
+      # (error: "Unsupported GitHub Actions source repository visibility:
+      # private"). The Klent monorepo is private. To re-enable provenance
+      # we'd need either (a) make the whole repo public — Cal.com / Linear
+      # pattern — or (b) split the SDK out to its own public repo (see
+      # ROADMAP follow-up). OIDC auth still works fine without provenance.
       - name: Publish @klent/schema
         working-directory: packages/schema
         run: |
           pnpm pack --pack-destination .
-          npm publish *.tgz --access public --provenance --tag ${{ steps.dist_tag.outputs.tag }}
+          npm publish *.tgz --access public --tag ${{ steps.dist_tag.outputs.tag }}
 
       - name: Publish @klent/sdk
         working-directory: packages/sdk-ts
         run: |
           pnpm pack --pack-destination .
-          npm publish *.tgz --access public --provenance --tag ${{ steps.dist_tag.outputs.tag }}
+          npm publish *.tgz --access public --tag ${{ steps.dist_tag.outputs.tag }}
