@@ -1,0 +1,61 @@
+name: Publish MCP Server
+
+on:
+  push:
+    tags:
+      - 'mcp-server-v*'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      # OIDC Trusted Publishing requires npm CLI ≥11.5.1; Node 20.18.x ships
+      # npm 10.x. Same upgrade pattern used by publish-sdk-ts.yml.
+      - name: Upgrade npm to OIDC-capable version
+        run: npm install -g npm@latest --no-audit --no-fund
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build @klent/schema + @klent/sdk + @klent/mcp-server
+        run: pnpm turbo run build --filter=@klent/schema --filter=@klent/sdk --filter=@klent/mcp-server
+
+      # Pre-release versions (e.g. 0.0.1-alpha.0) publish under the `next`
+      # dist-tag; stable versions get `latest`. Same logic as the TS SDK
+      # workflow so version semantics are uniform across packages.
+      - name: Determine npm dist-tag
+        id: dist_tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#mcp-server-v}"
+          if [[ "$VERSION" == *-* ]]; then
+            echo "tag=next" >> "$GITHUB_OUTPUT"
+            echo "Publishing $VERSION as pre-release (dist-tag: next)"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+            echo "Publishing $VERSION as stable (dist-tag: latest)"
+          fi
+
+      # No --provenance: the monorepo is private and npm rejects provenance
+      # for private repos. Same explanation as publish-sdk-ts.yml — see
+      # ROADMAP follow-up "Split SDK out a repo público separado".
+      - name: Publish @klent/mcp-server
+        working-directory: packages/mcp-server
+        run: |
+          pnpm pack --pack-destination .
+          npm publish *.tgz --access public --tag ${{ steps.dist_tag.outputs.tag }}
