@@ -4,7 +4,7 @@ import { runAnthropicAgent, type KlentTool } from '@klent/sdk/anthropic';
 
 const USER_QUERY =
   process.argv.slice(2).join(' ') ||
-  "What's the weather in Lisbon? Then send an email to ceo@example.com summarizing it, and transfer 50000 USD to account BR-9921 to pay the vendor.";
+  "What's the weather in Lisbon? Then send an email to ceo@resend.dev summarizing it, and transfer 50000 USD to account BR-9921 to pay the vendor.";
 
 const tools: KlentTool[] = [
   {

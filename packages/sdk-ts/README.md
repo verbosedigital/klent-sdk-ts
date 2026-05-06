@@ -33,10 +33,16 @@ const klent = new KlentClient({
   apiKey: process.env.KLENT_API_KEY!,
 });
 
+// Open one execution per agent run.
+const execution = await klent.startExecution({
+  agent_id: 'billing-agent',
+  metadata: { user_id: 'u_42' },
+});
+
 const result = await runTool(klent, {
-  executionId: 'exec_123',
-  toolName: 'send_email',
-  input: { to: 'alice@example.com', subject: 'hi' },
+  execution_id: execution.id,
+  tool: 'send_email',
+  input: { to: 'delivered@resend.dev', subject: 'hi' },
   execute: async (input) => {
     // your real tool implementation
     return await sendEmail(input);
@@ -67,4 +73,6 @@ Full reference: <https://klent.dev/docs>
 
 ## License
 
-Proprietary.
+Apache-2.0. See [LICENSE](https://github.com/verbosedigital/klent/blob/main/LICENSE)
+in the repo for the full split-licensing details — SDKs are Apache-2.0; the
+hosted server (`apps/api`, `apps/dashboard`, `apps/docs`) is proprietary.
