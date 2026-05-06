@@ -25,6 +25,13 @@ jobs:
           cache: pnpm
           registry-url: https://registry.npmjs.org
 
+      # OIDC Trusted Publishing requires npm CLI ≥11.5.1 (GA July 2025). The
+      # Node version pinned in .nvmrc (20.18.x) ships npm 10.x, so we upgrade
+      # npm globally for this job. `--no-audit --no-fund` keeps the install
+      # log clean.
+      - name: Upgrade npm to OIDC-capable version
+        run: npm install -g npm@latest --no-audit --no-fund
+
       - name: Install
         run: pnpm install --frozen-lockfile
 
@@ -46,12 +53,21 @@ jobs:
             echo "Publishing $VERSION as stable (dist-tag: latest)"
           fi
 
+      # We use `npm publish` (not `pnpm publish`) for the publishing step
+      # because npm CLI has stable, first-party support for OIDC Trusted
+      # Publishing; pnpm's OIDC support across the 9.x line was inconsistent.
+      # `pnpm pack` builds the tarball respecting workspace `files`/`exports`,
+      # then `npm publish` uploads it via OIDC. No NPM_TOKEN required —
+      # npm reads the OIDC id-token directly from the GitHub Actions
+      # environment thanks to `permissions: id-token: write`.
       - name: Publish @klent/schema
-        run: pnpm --filter @klent/schema publish --access public --no-git-checks --tag ${{ steps.dist_tag.outputs.tag }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: packages/schema
+        run: |
+          pnpm pack --pack-destination .
+          npm publish *.tgz --access public --provenance --tag ${{ steps.dist_tag.outputs.tag }}
 
       - name: Publish @klent/sdk
-        run: pnpm --filter @klent/sdk publish --access public --no-git-checks --tag ${{ steps.dist_tag.outputs.tag }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: packages/sdk-ts
+        run: |
+          pnpm pack --pack-destination .
+          npm publish *.tgz --access public --provenance --tag ${{ steps.dist_tag.outputs.tag }}
