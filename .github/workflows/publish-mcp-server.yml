@@ -51,11 +51,12 @@ jobs:
             echo "Publishing $VERSION as stable (dist-tag: latest)"
           fi
 
-      # No --provenance: the monorepo is private and npm rejects provenance
-      # for private repos. Same explanation as publish-sdk-ts.yml — see
-      # ROADMAP follow-up "Split SDK out a repo público separado".
+      # `--provenance` is enabled now that this repo is public
+      # (verbosedigital/klent-sdk-ts). npm attaches a signed attestation
+      # tying each published tarball to its source commit + workflow
+      # run, surfaced as a verified badge on npmjs.com.
       - name: Publish @klent/mcp-server
         working-directory: packages/mcp-server
         run: |
           pnpm pack --pack-destination .
-          npm publish *.tgz --access public --tag ${{ steps.dist_tag.outputs.tag }}
+          npm publish *.tgz --access public --provenance --tag ${{ steps.dist_tag.outputs.tag }}

@@ -1,0 +1,38 @@
+{
+  "name": "klent-sdk-ts",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Klent TypeScript SDK + shared schema + MCP server + starter policies + examples.",
+  "license": "Apache-2.0",
+  "homepage": "https://klent.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/verbosedigital/klent-sdk-ts.git"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json,yml,yaml}\""
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "turbo": "^2.3.3",
+    "typescript": "^5.6.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "@anthropic-ai/sdk>zod": "^3.23.8"
+    }
+  }
+}
