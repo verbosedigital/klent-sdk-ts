@@ -1,7 +1,20 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { KlentClient } from '@klent/sdk';
 import type { EventType } from '@klent/schema';
 import { z } from 'zod';
+
+// Read the server's own version from `package.json` at runtime instead of
+// hard-coding it inline. The MCP server's identity response surfaces this
+// value to clients (Claude Desktop, Cursor, etc.) — keeping it in sync with
+// the published npm version was an easy thing to forget on every bump.
+// `dist/server.js` sits next to `package.json` after build, so the relative
+// URL resolution works for both local dev (`dist/` adjacent to `package
+// .json`) and published consumers.
+const pkg = JSON.parse(
+  readFileSync(fileURLToPath(new URL('../package.json', import.meta.url)), 'utf8'),
+) as { version: string };
 
 // Mirror the closed event-type enum so the MCP tool's input schema only
 // accepts values the server will actually persist. Keep the literal list in
@@ -40,7 +53,7 @@ export function createKlentMcpServer(opts: Options): McpServer {
   const server = new McpServer(
     {
       name: 'klent-mcp',
-      version: '0.0.1-alpha.0',
+      version: pkg.version,
     },
     {
       capabilities: {
