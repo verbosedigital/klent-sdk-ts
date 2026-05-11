@@ -15,11 +15,11 @@
   "homepage": "https://klent.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/verbosedigital/klent.git",
+    "url": "git+https://github.com/verbosedigital/klent-sdk-ts.git",
     "directory": "packages/sdk-ts"
   },
   "bugs": {
-    "url": "https://github.com/verbosedigital/klent/issues"
+    "url": "https://github.com/verbosedigital/klent-sdk-ts/issues"
   },
   "author": "Klent",
   "type": "module",

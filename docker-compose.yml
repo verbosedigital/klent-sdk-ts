@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: klent-sdk-ts-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: klent
+      POSTGRES_PASSWORD: klent
+      POSTGRES_DB: klent
+    ports:
+      - '5432:5432'
+    volumes:
+      - klent_sdk_ts_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U klent -d klent']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  klent_sdk_ts_pg:
