@@ -1,0 +1,25 @@
+{
+  "name": "@klent-example/use-case-postgres-incident",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "seed": "tsx --env-file=.env src/seed.ts",
+    "start": "tsx --env-file=.env src/agent.ts",
+    "show": "tsx --env-file=.env src/show.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf .turbo *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.90.0",
+    "@klent/sdk": "workspace:*",
+    "postgres": "^3.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@klent/tsconfig": "workspace:*",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

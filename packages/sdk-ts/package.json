@@ -60,7 +60,7 @@
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
-    "@klent/schema": "workspace:*"
+    "@klent/schema": "^0.0.1-alpha.2"
   },
   "peerDependencies": {
     "@anthropic-ai/sdk": ">=0.40.0",
