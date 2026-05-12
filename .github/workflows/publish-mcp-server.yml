@@ -52,7 +52,7 @@ jobs:
           fi
 
       # `--provenance` is enabled now that this repo is public
-      # (verbosedigital/klent-sdk-ts). npm attaches a signed attestation
+      # (klentlabs/klent-sdk-ts). npm attaches a signed attestation
       # tying each published tarball to its source commit + workflow
       # run, surfaced as a verified badge on npmjs.com.
       - name: Publish @klent/mcp-server

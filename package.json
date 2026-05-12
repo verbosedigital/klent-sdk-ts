@@ -7,7 +7,7 @@
   "homepage": "https://klent.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/verbosedigital/klent-sdk-ts.git"
+    "url": "git+https://github.com/klentlabs/klent-sdk-ts.git"
   },
   "packageManager": "pnpm@9.15.0",
   "engines": {

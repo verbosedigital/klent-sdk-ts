@@ -64,7 +64,7 @@ import { runOpenAIAgent } from '@klent/sdk/openai';
 
 Both wrap the model loop and route every tool call through Klent
 automatically. See the [examples in the
-repo](https://github.com/verbosedigital/klent-sdk-ts/tree/main/examples) for
+repo](https://github.com/klentlabs/klent-sdk-ts/tree/main/examples) for
 full, runnable demos.
 
 ## Docs
@@ -73,4 +73,4 @@ Full reference: <https://klent.dev/docs>
 
 ## License
 
-Apache-2.0. See [LICENSE](https://github.com/verbosedigital/klent-sdk-ts/blob/main/LICENSE).
+Apache-2.0. See [LICENSE](https://github.com/klentlabs/klent-sdk-ts/blob/main/LICENSE).
