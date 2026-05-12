@@ -62,7 +62,7 @@ jobs:
       # environment thanks to `permissions: id-token: write`.
       #
       # `--provenance` is enabled now that this repo lives in the public
-      # `verbosedigital/klent-sdk-ts`. npm attaches a signed attestation
+      # `klentlabs/klent-sdk-ts`. npm attaches a signed attestation
       # tying each published tarball to the exact git commit + workflow
       # run that produced it. Users see a verified provenance badge on
       # npmjs.com. (This used to be disabled when the SDK lived inside

@@ -3,7 +3,7 @@
 Drop-in YAML policies for common agent scenarios. Apply them to your project on `app.klent.dev` via the dashboard's "New policy" form (paste the YAML), or via the API:
 
 ```bash
-curl https://raw.githubusercontent.com/verbosedigital/klent-sdk-ts/main/policies/finance-agent.yaml \
+curl https://raw.githubusercontent.com/klentlabs/klent-sdk-ts/main/policies/finance-agent.yaml \
   | curl -X POST https://api.klent.dev/v1/projects/$PROJECT_ID/policies \
     -H "Authorization: Bearer $KLENT_API_KEY" \
     -H "Content-Type: application/yaml" \

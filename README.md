@@ -25,7 +25,7 @@ Runnable end-to-end agents wired through Klent — clone this repo and run them 
 Drop-in policy packs you can apply against your own project. Browse [`policies/`](./policies) for `finance-agent.yaml`, `dev-safe.yaml`, `agent-sandbox.yaml`, `hitl-and-steer.yaml` — see [`policies/README.md`](./policies/README.md) for what each one does. Apply them via the dashboard at `app.klent.dev/policies/new` or via curl:
 
 ```bash
-curl https://raw.githubusercontent.com/verbosedigital/klent-sdk-ts/main/policies/finance-agent.yaml \
+curl https://raw.githubusercontent.com/klentlabs/klent-sdk-ts/main/policies/finance-agent.yaml \
   | curl -X POST https://api.klent.dev/v1/projects/$PROJECT_ID/policies \
     -H "Authorization: Bearer $KLENT_API_KEY" \
     -H "Content-Type: application/yaml" \
@@ -64,7 +64,7 @@ Full docs at [klent.dev/docs](https://klent.dev/docs).
 ## Develop (working on the SDK itself)
 
 ```bash
-git clone https://github.com/verbosedigital/klent-sdk-ts.git
+git clone https://github.com/klentlabs/klent-sdk-ts.git
 cd klent-sdk-ts
 pnpm install
 pnpm build

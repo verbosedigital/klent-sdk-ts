@@ -16,11 +16,11 @@
   "homepage": "https://klent.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/verbosedigital/klent-sdk-ts.git",
+    "url": "git+https://github.com/klentlabs/klent-sdk-ts.git",
     "directory": "packages/mcp-server"
   },
   "bugs": {
-    "url": "https://github.com/verbosedigital/klent-sdk-ts/issues"
+    "url": "https://github.com/klentlabs/klent-sdk-ts/issues"
   },
   "author": "Klent",
   "type": "module",

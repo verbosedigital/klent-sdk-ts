@@ -104,4 +104,4 @@ Full reference: <https://klent.dev/docs>
 
 ## License
 
-Apache-2.0. See [LICENSE](https://github.com/verbosedigital/klent-sdk-ts/blob/main/LICENSE).
+Apache-2.0. See [LICENSE](https://github.com/klentlabs/klent-sdk-ts/blob/main/LICENSE).
