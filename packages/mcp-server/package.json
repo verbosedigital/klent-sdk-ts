@@ -1,6 +1,6 @@
 {
   "name": "@klent/mcp-server",
-  "version": "0.0.1-alpha.1",
+  "version": "0.0.1-alpha.2",
   "license": "Apache-2.0",
   "description": "Model Context Protocol (MCP) server for Klent — let any MCP-aware client (Claude Desktop, Cursor, etc.) gate tool calls through Klent's policy engine.",
   "keywords": [
